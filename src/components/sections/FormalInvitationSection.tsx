@@ -53,7 +53,7 @@ export const FormalInvitationSection: React.FC = () => {
         <div className="px-4 mt-8">
           <div className="inline-block border-y border-wedding-gold/30 py-4 px-8">
             <p className="font-sans text-[14px] leading-relaxed text-wedding-brown opacity-70 mt-6">
-              ថ្ងៃ ៩កើត ខែផល្គុន ឆ្នាំរោង ឆស័ក ពុទ្ធសករាជ ២៥៦៩ ត្រូវនឹង
+              ថ្ងៃ  ១២រោច ខែផល្គុន ឆ្នាំម្សាញ់ សប្តស័ក ពុទ្ធសករាជ ២៥៦៩ ត្រូវនឹង
             </p>
             <p className="font-koulen text-xl text-wedding-main mb-1">ថ្ងៃអាទិត្យ ទី១៥ ខែមីនា ឆ្នាំ២០២៦</p>
             <p className="font-sans text-xs text-wedding-brown uppercase tracking-widest opacity-60">Sunday, March 15, 2026</p>
