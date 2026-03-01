@@ -164,28 +164,6 @@
 }
 
 .gold-gradient-text {
-  background: linear-gradient(
-    45deg,
-    #bf953f 0%,
-    #fcf6ba 15%,
-    #b38728 30%,
-    #fbf5b7 45%,
-    #aa771c 60%,
-    #bf953f 75%,
-    #fcf6ba 90%,
-    #b38728 100%
-  );
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0px 1px 1px rgba(0, 0, 0, 0.2));
-  text-shadow: 0.5px 0.5px 0px rgba(255, 255, 255, 0.4), -0.5px -0.5px 0px rgba(0, 0, 0, 0.3);
-  animation: shine 8s linear infinite;
-}
-
-@keyframes shine {
-  to {
-    background-position: 200% center;
-  }
+  @apply text-wedding-main;
 }
 

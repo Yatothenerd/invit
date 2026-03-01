@@ -12,7 +12,7 @@ export const LandingSection: React.FC<LandingSectionProps> = ({ guestName, scrol
     <section 
       className="min-h-screen flex flex-col items-center justify-between text-wedding-gold p-8 text-center relative overflow-hidden pt-10 pb-10"
       style={{
-        backgroundImage: 'linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.4) 30%, rgba(0, 0, 0, 0) 60%), url("/image/Photo/Cover.png")',
+        backgroundImage: 'linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.4) 30%, rgba(0, 0, 0, 0) 60%), url("/image/Photo/Cover.jpg")',
         backgroundSize: 'cover',
         backgroundPosition: 'center'
       }}

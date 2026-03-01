@@ -107,9 +107,19 @@ export const useWeddingApp = () => {
   useEffect(() => {
     const audio = new Audio('/audio/bg-music.mp3');
     audio.loop = true;
-    audio.preload = 'auto';
+    // Only fetch full audio when needed; avoid large upfront download
+    audio.preload = 'metadata';
     audio.volume = 0.5;
     audioRef.current = audio;
+
+    // Try to autoplay on initial load; some browsers may block this
+    // until the first user interaction, in which case we fall back
+    // to the click/touch handlers below.
+    audio
+      .play()
+      .catch(() => {
+        // Autoplay blocked – will start on first interaction
+      });
 
     const playAudio = () => {
       if (audioRef.current && audioRef.current.paused) {

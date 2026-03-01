@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Volume2, VolumeX, ChevronUp } from 'lucide-react';
+import { Music, Music2, ChevronUp } from 'lucide-react';
 
 interface FloatingControlsProps {
   isMuted: boolean;
@@ -19,9 +19,9 @@ export const FloatingControls: React.FC<FloatingControlsProps> = ({
         animate={{ opacity: 1, scale: 1 }}
         onClick={toggleMute}
         className="w-12 h-12 bg-wedding-red-dark text-wedding-gold rounded-full shadow-2xl flex items-center justify-center hover:bg-wedding-red/90 transition-all border border-wedding-gold/50"
-        title={isMuted ? "Unmute" : "Mute"}
+        title={isMuted ? "Turn music on" : "Turn music off"}
       >
-        {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
+        {isMuted ? <Music2 className="w-6 h-6" /> : <Music className="w-6 h-6" />}
       </motion.button>
       
       <AnimatePresence>
