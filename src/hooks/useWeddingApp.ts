@@ -74,7 +74,9 @@ export const useWeddingApp = () => {
     try {
       const response = await fetch('/api/guests');
       const data = await response.json();
-      setGuests(data);
+      // API returns { guests, codes }; fall back to array for
+      // backward compatibility when running against older servers.
+      setGuests(Array.isArray(data) ? data : (data.guests || []));
     } catch (error) {
       console.error("Error fetching guests:", error);
     }

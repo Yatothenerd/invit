@@ -18,3 +18,15 @@ View your app in AI Studio: https://ai.studio/apps/7b40a33f-eed7-4e49-b124-4e610
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
+
+## Deploy on Vercel
+
+- Framework: select **Vite** (or let Vercel auto-detect).
+- Build command: `npm run build`
+- Output directory: `dist`
+- APIs: the following serverless functions are available on Vercel:
+   - `GET/POST /api/wishes` – in-memory wishes (resets on cold start).
+   - `GET /api/guests` – reads guests from `WeddingGuest.xlsx` or `guests.json` and uses `guestCodes.json` for codes.
+   - `POST /api/upload-guests` – **disabled on Vercel**; use the local server to update guest data and commit the resulting files.
+
+After pushing to a Git repo (GitHub/GitLab/Bitbucket), import the project in Vercel, verify the settings above, and deploy.
