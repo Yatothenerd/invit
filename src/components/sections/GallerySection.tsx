@@ -18,7 +18,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ setSelectedImage
           onClick={() => setSelectedImage("/image/Photo/a.jpg")}
           className="cursor-pointer overflow-hidden shadow-xl bg-white/5 ring-1 ring-wedding-gold/10"
         >
-          <img src="/image/Photo/a.jpg" alt="Gallery a" className="w-full h-auto block transition-transform duration-700 hover:scale-105" referrerPolicy="no-referrer" />
+          <img src="/image/Photo/a.jpg" alt="Gallery a" loading="lazy" className="w-full h-auto block transition-transform duration-700 hover:scale-105" referrerPolicy="no-referrer" />
         </motion.div>
 
         {/* Row 2: b.jpg, c.jpg (Portrait pair) */}
@@ -28,14 +28,14 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ setSelectedImage
             onClick={() => setSelectedImage("/image/Photo/b.jpg")}
             className="cursor-pointer overflow-hidden shadow-xl bg-white/5 ring-1 ring-wedding-gold/10"
           >
-            <img src="/image/Photo/b.jpg" alt="Gallery b" className="w-full h-auto block transition-transform duration-700 hover:scale-105" referrerPolicy="no-referrer" />
+            <img src="/image/Photo/b.jpg" alt="Gallery b" loading="lazy" className="w-full h-auto block transition-transform duration-700 hover:scale-105" referrerPolicy="no-referrer" />
           </motion.div>
           <motion.div 
             whileHover={{ scale: 1.02 }}
             onClick={() => setSelectedImage("/image/Photo/c.jpg")}
             className="cursor-pointer overflow-hidden shadow-xl bg-white/5 ring-1 ring-wedding-gold/10"
           >
-            <img src="/image/Photo/c.jpg" alt="Gallery c" className="w-full h-auto block transition-transform duration-700 hover:scale-105" referrerPolicy="no-referrer" />
+            <img src="/image/Photo/c.jpg" alt="Gallery c" loading="lazy" className="w-full h-auto block transition-transform duration-700 hover:scale-105" referrerPolicy="no-referrer" />
           </motion.div>
         </div>
 
@@ -45,7 +45,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ setSelectedImage
           onClick={() => setSelectedImage("/image/Photo/e.jpg")}
           className="cursor-pointer overflow-hidden shadow-xl bg-white/5 ring-1 ring-wedding-gold/10"
         >
-          <img src="/image/Photo/e.jpg" alt="Gallery e" className="w-full h-auto block transition-transform duration-700 hover:scale-105" referrerPolicy="no-referrer" />
+          <img src="/image/Photo/e.jpg" alt="Gallery e" loading="lazy" className="w-full h-auto block transition-transform duration-700 hover:scale-105" referrerPolicy="no-referrer" />
         </motion.div>
 
         {/* Row 4: f.jpg, g.jpg (Portrait pair) */}
@@ -55,14 +55,14 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ setSelectedImage
             onClick={() => setSelectedImage("/image/Photo/f.jpg")}
             className="cursor-pointer overflow-hidden shadow-xl bg-white/5 ring-1 ring-wedding-gold/10"
           >
-            <img src="/image/Photo/f.jpg" alt="Gallery f" className="w-full h-auto block transition-transform duration-700 hover:scale-105" referrerPolicy="no-referrer" />
+            <img src="/image/Photo/f.jpg" alt="Gallery f" loading="lazy" className="w-full h-auto block transition-transform duration-700 hover:scale-105" referrerPolicy="no-referrer" />
           </motion.div>
           <motion.div 
             whileHover={{ scale: 1.02 }}
             onClick={() => setSelectedImage("/image/Photo/g.jpg")}
             className="cursor-pointer overflow-hidden shadow-xl bg-white/5 ring-1 ring-wedding-gold/10"
           >
-            <img src="/image/Photo/g.jpg" alt="Gallery g" className="w-full h-auto block transition-transform duration-700 hover:scale-105" referrerPolicy="no-referrer" />
+            <img src="/image/Photo/g.jpg" alt="Gallery g" loading="lazy" className="w-full h-auto block transition-transform duration-700 hover:scale-105" referrerPolicy="no-referrer" />
           </motion.div>
         </div>
 
@@ -72,7 +72,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ setSelectedImage
           onClick={() => setSelectedImage("/image/Photo/d.jpg")}
           className="cursor-pointer overflow-hidden shadow-xl bg-white/5 ring-1 ring-wedding-gold/10"
         >
-          <img src="/image/Photo/d.jpg" alt="Gallery d" className="w-full h-auto block transition-transform duration-700 hover:scale-105" referrerPolicy="no-referrer" />
+          <img src="/image/Photo/d.jpg" alt="Gallery d" loading="lazy" className="w-full h-auto block transition-transform duration-700 hover:scale-105" referrerPolicy="no-referrer" />
         </motion.div>
       </div>
     </Section>

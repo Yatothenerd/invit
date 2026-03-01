@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useWeddingApp } from './hooks/useWeddingApp';
 import { LandingSection } from './components/sections/LandingSection';
 import { FormalInvitationSection } from './components/sections/FormalInvitationSection';
@@ -17,7 +17,8 @@ import { ImageModal } from './components/modals/ImageModal';
 import { AdminModal } from './components/modals/AdminModal';
 import { FloatingControls } from './components/FloatingControls';
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import AdminPage from "./components/admin/AdminPage";
+
+const AdminPage = React.lazy(() => import("./components/admin/AdminPage"));
 
 export default function App() {
   const {
@@ -77,8 +78,15 @@ export default function App() {
             />
           }
         />
-        {/* Admin panel */}
-        <Route path="/admin" element={<AdminPage />} />
+        {/* Admin panel - lazy-loaded to keep main bundle smaller */}
+        <Route
+          path="/admin"
+          element={
+            <Suspense fallback={<div style={{ padding: "1.5rem", textAlign: "center" }}>Loading admin...</div>}>
+              <AdminPage />
+            </Suspense>
+          }
+        />
 
         {/* Handle short code URLs like /AbCDe0 by rendering the same content */}
         <Route
