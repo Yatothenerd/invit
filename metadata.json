@@ -1,0 +1,5 @@
+{
+  "name": "Eternal Bloom - Wedding Invitation",
+  "description": "An elegant digital wedding invitation with Cambodian traditions, photo gallery, and wishing card.",
+  "requestFramePermissions": ["geolocation"]
+}
