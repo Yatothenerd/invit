@@ -26,7 +26,7 @@ export const AgendaSection: React.FC = () => {
             whileInView={{ y: 0, opacity: 1 }}
             transition={{ delay: idx * 0.1 }}
             viewport={{ once: true }}
-            className="grid grid-cols-[60px_1fr] gap-6 items-center"
+            className="grid grid-cols-[60px_1fr] gap-6 items-center bg-wedding-cream rounded-sm border border-wedding-gold/20 px-4 py-3 card-pattern"
           >
             <div className="w-16 h-16 flex items-center justify-center bg-wedding-tan/10 rounded-full border border-wedding-tan/20 shadow-sm">
               <img src={item.icon} alt="icon" className="w-10 h-10 object-contain" />

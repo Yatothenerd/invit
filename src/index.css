@@ -110,7 +110,25 @@
 }
 
 .floral-pattern {
-  background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M60 10 C65 30 85 35 110 30 C90 50 85 70 90 95 C70 85 50 85 30 95 C35 70 30 50 10 30 C35 35 55 30 60 10 Z' fill='none' stroke='%23d4af37' stroke-width='0.3' opacity='0.15'/%3E%3Ccircle cx='60' cy='60' r='2' fill='%23d4af37' opacity='0.1'/%3E%3Cpath d='M0 0 Q30 10 60 0 T120 0' fill='none' stroke='%23d4af37' stroke-width='0.2' opacity='0.1'/%3E%3C/svg%3E");
+  --s: 42px; /* control the size*/
+  --c1: #ffebeb;
+  --c2: #ffffff;
+  
+  --_g:radial-gradient(#0000 60%,var(--c1) 61% 63%,#0000 64% 77%,var(--c1) 78% 80%,#0000 81%);
+  --_c:,#0000 75%,var(--c2) 0;
+  background:
+    conic-gradient(at 12% 20% var(--_c)) calc(var(--s)* .44) calc(.9*var(--s)),
+    conic-gradient(at 12% 20% var(--_c)) calc(var(--s)*-.06) calc(.4*var(--s)),
+    conic-gradient(at 20% 12% var(--_c)) calc(.9*var(--s)) calc(var(--s)* .44),
+    conic-gradient(at 20% 12% var(--_c)) calc(.4*var(--s)) calc(var(--s)*-.06),
+    var(--_g),var(--_g) calc(var(--s)/2) calc(var(--s)/2) var(--c2);
+  background-size: var(--s) var(--s);
+}
+
+.card-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M60 10 C65 30 85 35 110 30 C90 50 85 70 90 95 C70 85 50 85 30 95 C35 70 30 50 10 30 C35 35 55 30 60 10 Z' fill='none' stroke='%23d4af37' stroke-width='0.25' opacity='0.12'/%3E%3Ccircle cx='60' cy='60' r='2' fill='%23d4af37' opacity='0.08'/%3E%3Cpath d='M0 0 Q30 10 60 0 T120 0' fill='none' stroke='%23d4af37' stroke-width='0.18' opacity='0.08'/%3E%3C/svg%3E");
+  background-size: 140px 140px;
+  background-repeat: repeat;
 }
 
 .ornate-corner {

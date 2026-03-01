@@ -22,7 +22,7 @@ export const WishingCardSection: React.FC<WishingCardSectionProps> = ({
       <div className="mb-20">
         <h3 className="section-title gold-gradient-text">សៀវភៅជូនពរ</h3>
         
-        <form onSubmit={handleSubmitWish} className="bg-wedding-red-dark p-8 rounded-sm shadow-xl border border-wedding-gold/20 mb-10 relative">
+        <form onSubmit={handleSubmitWish} className="bg-wedding-red-dark p-8 rounded-sm shadow-xl border border-wedding-gold/20 mb-10 relative card-pattern">
           <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-wedding-red-dark px-4">
             <Heart className="w-6 h-6 text-wedding-gold fill-wedding-red" />
           </div>
@@ -65,7 +65,7 @@ export const WishingCardSection: React.FC<WishingCardSectionProps> = ({
               initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
               key={wish.id} 
-              className="bg-wedding-red-dark/50 backdrop-blur-sm p-6 rounded-sm border-l-4 border-wedding-gold shadow-sm"
+              className="bg-wedding-red-dark/50 backdrop-blur-sm p-6 rounded-sm border-l-4 border-wedding-gold shadow-sm card-pattern"
             >
               <p className="font-sans font-bold text-wedding-gold text-sm">{wish.name}</p>
               <p className="text-wedding-cream/80 text-sm mt-2 italic font-sans leading-relaxed">"{wish.message}"</p>

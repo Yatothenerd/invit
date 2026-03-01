@@ -11,7 +11,7 @@ export const LocationSection: React.FC<LocationSectionProps> = ({ handleGetLocat
     <Section className="bg-wedding-cream" ornate>
       <div className="text-center">
         <h3 className="section-title gold-gradient-text">ទីតាំងកម្មវិធី</h3>
-        <div className="bg-white p-8 rounded-sm shadow-xl border border-wedding-gold/20 relative mt-8">
+        <div className="bg-white p-8 rounded-sm shadow-xl border border-wedding-gold/20 relative mt-8 card-pattern">
           <div className="p-4 absolute -top-3 left-1/2 -translate-x-1/2 bg-white px-4">
             <MapPin className="w-6 h-6 text-wedding-gold" />
           </div>

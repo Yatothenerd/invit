@@ -46,8 +46,7 @@ export const SupportSection: React.FC = () => {
           <img 
             src={qrSrc}
             alt={qrAlt}
-            loading="lazy"
-            className="w-full h-auto block transition-transform duration-700 hover:scale-105" 
+            className="w-full h-auto block" 
             referrerPolicy="no-referrer" 
           />
         </div>
