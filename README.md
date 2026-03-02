@@ -22,13 +22,21 @@ View your app in AI Studio: https://ai.studio/apps/7b40a33f-eed7-4e49-b124-4e610
 ## Deploy on Vercel
 
 - Framework: select **Vite** (or let Vercel auto-detect).
-- Build command: `npm run build`
+- Build command: `npm run build` (automatically runs code generation)
 - Output directory: `dist`
 - APIs: the following serverless functions are available on Vercel:
    - `GET/POST /api/wishes` – in-memory wishes (resets on cold start).
-   - `GET /api/guests` – reads guests from `src/WeddingGuest.xlsx` on every request (fallback: `guests.json`) and uses `guestCodes.json` for codes.
+   - `GET /api/guests` – reads guests from `src/WeddingGuest.xlsx` (fallback: `guests.json`) and uses `guestCodes.json` for codes.
    - `POST /api/upload-guests` – **disabled on Vercel**; use the local server to update guest data and commit the resulting files.
 
-When you push a new `src/WeddingGuest.xlsx` and redeploy, guest data is converted to JSON at runtime automatically by `/api/guests` (no manual conversion step needed).
+### Workflow: Adding New Guests
+
+1. Edit `src/WeddingGuest.xlsx` and add new guest rows
+2. Run `npm run generate-codes` locally to sync `guestCodes.json`
+3. Commit and push both files to GitHub
+4. Vercel redeploys and generates new codes for any guests not yet in `guestCodes.json`
+5. All guests in the admin panel will have working invite links
+
+**Note:** The build process automatically runs `npm run generate-codes` to ensure new guests added to the Excel file get unique codes during deployment.
 
 After pushing to a Git repo (GitHub/GitLab/Bitbucket), import the project in Vercel, verify the settings above, and deploy.
