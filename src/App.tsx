@@ -16,7 +16,7 @@ import { Footer } from './components/sections/Footer';
 import { ImageModal } from './components/modals/ImageModal';
 import { AdminModal } from './components/modals/AdminModal';
 import { FloatingControls } from './components/FloatingControls';
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, useLocation } from "react-router-dom";
 
 const AdminPage = React.lazy(() => import("./components/admin/AdminPage"));
 
@@ -35,19 +35,103 @@ export default function App() {
     isAdmin,
     setIsAdmin,
     guests,
-    isMuted,
+    isPlaying,
     mainRef,
     secondSectionRef,
     handleSubmitWish,
     scrollToTop,
     scrollToContent,
-    toggleMute,
+    togglePlay,
     handleShare,
     handleGetLocation
   } = useWeddingApp();
 
   return (
     <Router>
+      <AppRoutes
+        showScrollTop={showScrollTop}
+        selectedImage={selectedImage}
+        setSelectedImage={setSelectedImage}
+        wishes={wishes}
+        name={name}
+        setName={setName}
+        message={message}
+        setMessage={setMessage}
+        isSubmitting={isSubmitting}
+        guestName={guestName}
+        isAdmin={isAdmin}
+        setIsAdmin={setIsAdmin}
+        guests={guests}
+        isPlaying={isPlaying}
+        mainRef={mainRef}
+        secondSectionRef={secondSectionRef}
+        handleSubmitWish={handleSubmitWish}
+        scrollToTop={scrollToTop}
+        scrollToContent={scrollToContent}
+        togglePlay={togglePlay}
+        handleShare={handleShare}
+        handleGetLocation={handleGetLocation}
+      />
+    </Router>
+  );
+}
+
+type AppContentProps = {
+  showScrollTop: boolean;
+  selectedImage: string | null;
+  setSelectedImage: (img: string | null) => void;
+  wishes: any[];
+  name: string;
+  setName: (v: string) => void;
+  message: string;
+  setMessage: (v: string) => void;
+  isSubmitting: boolean;
+  guestName: string;
+  isAdmin: boolean;
+  setIsAdmin: (v: boolean) => void;
+  guests: any[];
+  isPlaying: boolean;
+  mainRef: React.RefObject<HTMLDivElement>;
+  secondSectionRef: React.RefObject<HTMLDivElement>;
+  handleSubmitWish: (e: React.FormEvent) => void;
+  scrollToTop: () => void;
+  scrollToContent: () => void;
+  togglePlay: () => void;
+  handleShare: (imageUrl: string) => void;
+  handleGetLocation: () => void;
+};
+
+function AppRoutes(props: AppContentProps) {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
+  const {
+    showScrollTop,
+    selectedImage,
+    setSelectedImage,
+    wishes,
+    name,
+    setName,
+    message,
+    setMessage,
+    isSubmitting,
+    guestName,
+    isAdmin,
+    setIsAdmin,
+    guests,
+    isPlaying,
+    mainRef,
+    secondSectionRef,
+    handleSubmitWish,
+    scrollToTop,
+    scrollToContent,
+    togglePlay,
+    handleShare,
+    handleGetLocation,
+  } = props;
+
+  return (
+    <>
       <Routes>
         <Route
           path="/"
@@ -66,13 +150,13 @@ export default function App() {
               isAdmin={isAdmin}
               setIsAdmin={setIsAdmin}
               guests={guests}
-              isMuted={isMuted}
+              isPlaying={isPlaying}
               mainRef={mainRef}
               secondSectionRef={secondSectionRef}
               handleSubmitWish={handleSubmitWish}
               scrollToTop={scrollToTop}
               scrollToContent={scrollToContent}
-              toggleMute={toggleMute}
+              togglePlay={togglePlay}
               handleShare={handleShare}
               handleGetLocation={handleGetLocation}
             />
@@ -106,47 +190,29 @@ export default function App() {
               isAdmin={isAdmin}
               setIsAdmin={setIsAdmin}
               guests={guests}
-              isMuted={isMuted}
+              isPlaying={isPlaying}
               mainRef={mainRef}
               secondSectionRef={secondSectionRef}
               handleSubmitWish={handleSubmitWish}
               scrollToTop={scrollToTop}
               scrollToContent={scrollToContent}
-              toggleMute={toggleMute}
+              togglePlay={togglePlay}
               handleShare={handleShare}
               handleGetLocation={handleGetLocation}
             />
           }
         />
       </Routes>
-    </Router>
+      <FloatingControls 
+        isPlaying={isPlaying}
+        togglePlay={togglePlay}
+        showScrollTop={showScrollTop}
+        scrollToTop={scrollToTop}
+        isAdminLayout={isAdminRoute}
+      />
+    </>
   );
 }
-
-type AppContentProps = {
-  showScrollTop: boolean;
-  selectedImage: string | null;
-  setSelectedImage: (img: string | null) => void;
-  wishes: any[];
-  name: string;
-  setName: (v: string) => void;
-  message: string;
-  setMessage: (v: string) => void;
-  isSubmitting: boolean;
-  guestName: string;
-  isAdmin: boolean;
-  setIsAdmin: (v: boolean) => void;
-  guests: any[];
-  isMuted: boolean;
-  mainRef: React.RefObject<HTMLDivElement>;
-  secondSectionRef: React.RefObject<HTMLDivElement>;
-  handleSubmitWish: (e: React.FormEvent) => void;
-  scrollToTop: () => void;
-  scrollToContent: () => void;
-  toggleMute: () => void;
-  handleShare: (imageUrl: string) => void;
-  handleGetLocation: () => void;
-};
 
 function AppContent({
   showScrollTop,
@@ -162,13 +228,11 @@ function AppContent({
   isAdmin,
   setIsAdmin,
   guests,
-  isMuted,
   mainRef,
   secondSectionRef,
   handleSubmitWish,
-  scrollToTop,
   scrollToContent,
-  toggleMute,
+  togglePlay,
   handleShare,
   handleGetLocation,
 }: AppContentProps) {
@@ -196,13 +260,6 @@ function AppContent({
             wishes={wishes}
           />
           <Footer />
-          
-          <FloatingControls 
-            isMuted={isMuted}
-            toggleMute={toggleMute}
-            showScrollTop={showScrollTop}
-            scrollToTop={scrollToTop}
-          />
         </div>
       </div>
 

@@ -16,7 +16,7 @@ export const useWeddingApp = () => {
   const [guestName, setGuestName] = useState('Guest');
   const [isAdmin, setIsAdmin] = useState(false);
   const [guests, setGuests] = useState<Guest[]>([]);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const mainRef = useRef<HTMLDivElement>(null);
   const secondSectionRef = useRef<HTMLDivElement>(null);
@@ -94,13 +94,14 @@ export const useWeddingApp = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 500) {
-        setShowScrollTop(true);
-      } else {
-        setShowScrollTop(false);
-      }
+      const scrollPosition = window.scrollY + window.innerHeight;
+      const pageHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
+      const threshold = 50;
+      setShowScrollTop(scrollPosition >= pageHeight - threshold);
     };
     window.addEventListener('scroll', handleScroll);
+    // Initialize on mount
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -117,13 +118,17 @@ export const useWeddingApp = () => {
     // to the click/touch handlers below.
     audio
       .play()
+      .then(() => setIsPlaying(true))
       .catch(() => {
         // Autoplay blocked – will start on first interaction
       });
 
     const playAudio = () => {
       if (audioRef.current && audioRef.current.paused) {
-        audioRef.current.play().catch(() => {});
+        audioRef.current
+          .play()
+          .then(() => setIsPlaying(true))
+          .catch(() => {});
       }
     };
 
@@ -143,14 +148,9 @@ export const useWeddingApp = () => {
       }
       document.removeEventListener('click', handleFirstInteraction);
       document.removeEventListener('touchstart', handleFirstInteraction);
+      setIsPlaying(false);
     };
   }, []);
-
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.muted = isMuted;
-    }
-  }, [isMuted]);
 
   const handleSubmitWish = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -181,12 +181,25 @@ export const useWeddingApp = () => {
   const scrollToContent = () => {
     secondSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
     if (audioRef.current && audioRef.current.paused) {
-      audioRef.current.play().catch(() => {});
+      audioRef.current
+        .play()
+        .then(() => setIsPlaying(true))
+        .catch(() => {});
     }
   };
 
-  const toggleMute = () => {
-    setIsMuted(!isMuted);
+  const togglePlay = () => {
+    if (!audioRef.current) return;
+    if (audioRef.current.paused) {
+      audioRef.current
+        .play()
+        .then(() => setIsPlaying(true))
+        .catch(() => {});
+    } else {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setIsPlaying(false);
+    }
   };
 
   const handleShare = async (imageUrl: string) => {
@@ -225,13 +238,13 @@ export const useWeddingApp = () => {
     isAdmin,
     setIsAdmin,
     guests,
-    isMuted,
+    isPlaying,
     mainRef,
     secondSectionRef,
     handleSubmitWish,
     scrollToTop,
     scrollToContent,
-    toggleMute,
+    togglePlay,
     handleShare,
     handleGetLocation
   };
