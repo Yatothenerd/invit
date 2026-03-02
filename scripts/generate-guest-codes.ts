@@ -71,21 +71,59 @@ function main() {
     // Load existing codes
     const rawCodes = loadGuestCodes();
     const normalizedCodes: Record<string, GuestCodeEntry> = {};
+    const assignedIndices = new Set<number>();
 
     const guestKey = (g: any) => JSON.stringify(g ?? {});
+    const guestIndicesByKey = new Map<string, number[]>();
+    guests.forEach((guest, idx) => {
+      const key = guestKey(guest);
+      const list = guestIndicesByKey.get(key) ?? [];
+      list.push(idx);
+      guestIndicesByKey.set(key, list);
+    });
+
+    const takeIndexByGuestSnapshot = (snapshotGuest: any, preferredIndex?: number): number => {
+      const key = guestKey(snapshotGuest);
+      const list = guestIndicesByKey.get(key);
+      if (!list || list.length === 0) {
+        return -1;
+      }
+
+      if (typeof preferredIndex === "number") {
+        const preferredPos = list.indexOf(preferredIndex);
+        if (preferredPos !== -1) {
+          const [idx] = list.splice(preferredPos, 1);
+          guestIndicesByKey.set(key, list);
+          assignedIndices.add(idx);
+          return idx;
+        }
+      }
+
+      const idx = list.shift() as number;
+      guestIndicesByKey.set(key, list);
+      assignedIndices.add(idx);
+      return idx;
+    };
+
+    const claimRawIndex = (idx: number): number => {
+      if (idx < 0 || idx >= guests.length || assignedIndices.has(idx)) {
+        return -1;
+      }
+      assignedIndices.add(idx);
+      return idx;
+    };
 
     // Normalize and preserve existing codes
     for (const [code, entry] of Object.entries(rawCodes)) {
       if (typeof entry === "number") {
-        const idx = entry;
-        if (idx >= 0 && idx < guests.length) {
+        const idx = claimRawIndex(entry);
+        if (idx !== -1) {
           normalizedCodes[code] = { index: idx, guest: guests[idx] };
         }
       } else if (entry && typeof entry === "object") {
         const prevGuest = (entry as GuestCodeEntry).guest;
         if (prevGuest) {
-          const key = guestKey(prevGuest);
-          const idx = guests.findIndex((g) => guestKey(g) === key);
+          const idx = takeIndexByGuestSnapshot(prevGuest, (entry as GuestCodeEntry).index);
           if (idx !== -1) {
             normalizedCodes[code] = { index: idx, guest: guests[idx] };
           }
@@ -95,29 +133,28 @@ function main() {
 
     const usedCodes = new Set(Object.keys(normalizedCodes));
     let newCodesGenerated = 0;
+    let changed = false;
 
-    // Generate codes for new guests
+    // Generate codes for guest rows that do not yet have a code
     guests.forEach((guest, idx) => {
-      const key = guestKey(guest);
-      const existingCode = Object.entries(normalizedCodes).find(
-        ([, value]) => guestKey(value.guest) === key
-      )?.[0];
-
-      if (!existingCode) {
+      if (!assignedIndices.has(idx)) {
         const code = randomCode(usedCodes);
         normalizedCodes[code] = { index: idx, guest };
         usedCodes.add(code);
+        assignedIndices.add(idx);
         newCodesGenerated++;
+        changed = true;
         console.log(
           `[BUILD] Generated code ${code} for new guest: ${JSON.stringify(guest).substring(0, 50)}...`
         );
-      } else {
-        // Update index in case rows moved
-        normalizedCodes[existingCode].index = idx;
       }
     });
 
-    saveGuestCodes(normalizedCodes);
+    if (changed) {
+      saveGuestCodes(normalizedCodes);
+    } else {
+      console.log("[BUILD] No new guests detected. guestCodes.json unchanged.");
+    }
     console.log(
       `[BUILD] ✓ Codes synced. Generated ${newCodesGenerated} new code(s) for ${guests.length} total guests.`
     );

@@ -56,20 +56,69 @@ export default function handler(req: any, res: any) {
     }
 
     const responseCodes: Record<string, number> = {};
+    const guestKey = (guest: any) => JSON.stringify(guest ?? {});
+    const claimedIndices = new Set<number>();
+    const guestIndicesByKey = new Map<string, number[]>();
+
+    guests.forEach((guest, idx) => {
+      const key = guestKey(guest);
+      const list = guestIndicesByKey.get(key) ?? [];
+      list.push(idx);
+      guestIndicesByKey.set(key, list);
+    });
+
+    const claimRawIndex = (idx: number): number => {
+      if (idx < 0 || idx >= guests.length || claimedIndices.has(idx)) {
+        return -1;
+      }
+      claimedIndices.add(idx);
+      return idx;
+    };
+
+    const takeIndexByGuestSnapshot = (snapshotGuest: any, preferredIndex?: number): number => {
+      const key = guestKey(snapshotGuest);
+      const list = guestIndicesByKey.get(key);
+      if (!list || list.length === 0) {
+        return -1;
+      }
+
+      if (typeof preferredIndex === 'number') {
+        const preferredPos = list.indexOf(preferredIndex);
+        if (preferredPos !== -1) {
+          const [idx] = list.splice(preferredPos, 1);
+          guestIndicesByKey.set(key, list);
+          claimedIndices.add(idx);
+          return idx;
+        }
+      }
+
+      const idx = list.shift() as number;
+      guestIndicesByKey.set(key, list);
+      claimedIndices.add(idx);
+      return idx;
+    };
 
     // Support both old style (code -> index number)
     // and new style (code -> { index, guest })
     for (const [code, entry] of Object.entries(rawCodes)) {
-      if (typeof entry === 'number') {
-        const idx = entry;
-        if (idx >= 0 && idx < guests.length) {
-          responseCodes[code] = idx;
+      let idx = -1;
+      if (entry && typeof entry === 'object' && 'guest' in entry) {
+        idx = takeIndexByGuestSnapshot((entry as any).guest, (entry as any).index);
+      }
+
+      if (idx === -1 && typeof entry === 'number') {
+        idx = claimRawIndex(entry);
+      }
+
+      if (idx === -1 && entry && typeof entry === 'object' && 'index' in entry) {
+        const rawIdx = (entry as any).index;
+        if (typeof rawIdx === 'number') {
+          idx = claimRawIndex(rawIdx);
         }
-      } else if (entry && typeof entry === 'object' && 'index' in entry) {
-        const idx = (entry as any).index as number;
-        if (typeof idx === 'number' && idx >= 0 && idx < guests.length) {
-          responseCodes[code] = idx;
-        }
+      }
+
+      if (idx >= 0 && idx < guests.length) {
+        responseCodes[code] = idx;
       }
     }
 

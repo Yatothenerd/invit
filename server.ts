@@ -104,22 +104,60 @@ async function startServer() {
       // so we can re-find the same person even if Excel rows move.
       const rawCodes = loadGuestCodes();
       const normalizedCodes: Record<string, GuestCodeEntry> = {};
+      const assignedIndices = new Set<number>();
 
       // Helper to stringify a guest consistently
       const guestKey = (g: any) => JSON.stringify(g ?? {});
+      const guestIndicesByKey = new Map<string, number[]>();
+      guests.forEach((guest, idx) => {
+        const key = guestKey(guest);
+        const list = guestIndicesByKey.get(key) ?? [];
+        list.push(idx);
+        guestIndicesByKey.set(key, list);
+      });
+
+      const takeIndexByGuestSnapshot = (snapshotGuest: any, preferredIndex?: number): number => {
+        const key = guestKey(snapshotGuest);
+        const list = guestIndicesByKey.get(key);
+        if (!list || list.length === 0) {
+          return -1;
+        }
+
+        if (typeof preferredIndex === "number") {
+          const preferredPos = list.indexOf(preferredIndex);
+          if (preferredPos !== -1) {
+            const [idx] = list.splice(preferredPos, 1);
+            guestIndicesByKey.set(key, list);
+            assignedIndices.add(idx);
+            return idx;
+          }
+        }
+
+        const idx = list.shift() as number;
+        guestIndicesByKey.set(key, list);
+        assignedIndices.add(idx);
+        return idx;
+      };
+
+      const claimRawIndex = (idx: number): number => {
+        if (idx < 0 || idx >= guests.length || assignedIndices.has(idx)) {
+          return -1;
+        }
+        assignedIndices.add(idx);
+        return idx;
+      };
 
       // First, normalize any old-format entries (code -> index number)
       for (const [code, entry] of Object.entries(rawCodes)) {
         if (typeof entry === "number") {
-          const idx = entry;
-          if (idx >= 0 && idx < guests.length) {
+          const idx = claimRawIndex(entry);
+          if (idx !== -1) {
             normalizedCodes[code] = { index: idx, guest: guests[idx] };
           }
         } else if (entry && typeof entry === "object") {
           const prevGuest = (entry as GuestCodeEntry).guest;
           if (prevGuest) {
-            const key = guestKey(prevGuest);
-            const idx = guests.findIndex((g) => guestKey(g) === key);
+            const idx = takeIndexByGuestSnapshot(prevGuest, (entry as GuestCodeEntry).index);
             if (idx !== -1) {
               normalizedCodes[code] = { index: idx, guest: guests[idx] };
             }
@@ -132,33 +170,66 @@ async function startServer() {
 
       // Ensure every current guest has a code, based on its row contents
       guests.forEach((guest, idx) => {
-        const key = guestKey(guest);
-        const existingCode = Object.entries(normalizedCodes).find(
-          ([, value]) => guestKey(value.guest) === key
-        )?.[0];
-
-        if (!existingCode) {
+        if (!assignedIndices.has(idx)) {
           const code = randomCode(usedCodes);
           normalizedCodes[code] = { index: idx, guest };
           usedCodes.add(code);
+          assignedIndices.add(idx);
           changed = true;
-        } else {
-          // Update stored index in case the row moved
-          const entry = normalizedCodes[existingCode];
-          if (entry.index !== idx) {
-            entry.index = idx;
-            changed = true;
-          }
         }
       });
 
       if (changed) saveGuestCodes(normalizedCodes);
 
       // For the frontend we still expose codes as { code: index }
+      // Resolve by guest snapshot first so links remain stable even if rows move.
       const responseCodes: Record<string, number> = {};
+      const claimedResponseIndices = new Set<number>();
+      const guestIndicesForResponse = new Map<string, number[]>();
+      guests.forEach((guest, idx) => {
+        const key = guestKey(guest);
+        const list = guestIndicesForResponse.get(key) ?? [];
+        list.push(idx);
+        guestIndicesForResponse.set(key, list);
+      });
+
+      const takeResponseIndexByGuest = (entry: GuestCodeEntry): number => {
+        const key = guestKey(entry.guest);
+        const list = guestIndicesForResponse.get(key);
+        if (list && list.length > 0) {
+          if (typeof entry.index === "number") {
+            const preferredPos = list.indexOf(entry.index);
+            if (preferredPos !== -1) {
+              const [idx] = list.splice(preferredPos, 1);
+              guestIndicesForResponse.set(key, list);
+              claimedResponseIndices.add(idx);
+              return idx;
+            }
+          }
+
+          const idx = list.shift() as number;
+          guestIndicesForResponse.set(key, list);
+          claimedResponseIndices.add(idx);
+          return idx;
+        }
+
+        if (
+          typeof entry.index === "number" &&
+          entry.index >= 0 &&
+          entry.index < guests.length &&
+          !claimedResponseIndices.has(entry.index)
+        ) {
+          claimedResponseIndices.add(entry.index);
+          return entry.index;
+        }
+
+        return -1;
+      };
+
       for (const [code, entry] of Object.entries(normalizedCodes)) {
-        if (entry.index >= 0 && entry.index < guests.length) {
-          responseCodes[code] = entry.index;
+        const idx = takeResponseIndexByGuest(entry);
+        if (idx >= 0 && idx < guests.length) {
+          responseCodes[code] = idx;
         }
       }
 
