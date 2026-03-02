@@ -33,15 +33,11 @@
   ],
   "rewrites": [
     {
-      "source": "/api/preview/(?<code>[a-zA-Z0-9]{6})",
-      "destination": "/api/preview?code=$code"
+      "source": "/([a-zA-Z0-9]{6})$",
+      "destination": "/api/preview?code=$1"
     },
     {
-      "source": "/(?<code>[a-zA-Z0-9]{6})$",
-      "destination": "/api/preview?code=$code"
-    },
-    {
-      "source": "/((?!api).*)",
+      "source": "/((?!api|image|public).*)",
       "destination": "/"
     }
   ]
