@@ -77,11 +77,17 @@ async function startServer() {
 
   // Endpoint to fetch guest names
   // /api/guests returns { guests: [...], codes: { code: index } }
+  // Logic is aligned with the Vercel serverless function in api/guests.ts
   app.get("/api/guests", (req, res) => {
     try {
-      const excelPathSrc = path.join(process.cwd(), "src", "WeddingGuest.xlsx");
-      const excelPathRoot = path.join(process.cwd(), "WeddingGuest.xlsx");
-      const excelPath = fs.existsSync(excelPathSrc) ? excelPathSrc : fs.existsSync(excelPathRoot) ? excelPathRoot : null;
+      const cwd = process.cwd();
+
+      // 1) Load guests from Excel (preferred) or JSON
+      const excelCandidates = [
+        path.join(cwd, "src", "WeddingGuest.xlsx"),
+        path.join(cwd, "WeddingGuest.xlsx"),
+      ];
+      const excelPath = excelCandidates.find((candidate) => fs.existsSync(candidate)) ?? null;
 
       let guests: any[] = [];
       if (excelPath) {
@@ -90,31 +96,46 @@ async function startServer() {
         guests = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
         console.log(`[API] Loaded ${guests.length} guests from Excel: ${excelPath}`);
       } else {
-        const jsonPath = path.join(process.cwd(), "guests.json");
+        const jsonPath = path.join(cwd, "guests.json");
         if (fs.existsSync(jsonPath)) {
           const raw = fs.readFileSync(jsonPath, "utf-8");
           guests = JSON.parse(raw);
           console.log(`[API] Loaded ${guests.length} guests from guests.json`);
         } else {
-          console.log(`[API] No guest source found`);
+          console.log("[API] No guest source found");
         }
       }
 
-      // Load or generate codes. We store a snapshot of the guest row
-      // so we can re-find the same person even if Excel rows move.
-      const rawCodes = loadGuestCodes();
-      const normalizedCodes: Record<string, GuestCodeEntry> = {};
-      const assignedIndices = new Set<number>();
+      // 2) Load pre-generated codes from guestCodes.json (treated as read-only)
+      const guestCodesPathLocal = path.join(cwd, "guestCodes.json");
+      let rawCodes: Record<string, any> = {};
+      if (fs.existsSync(guestCodesPathLocal)) {
+        try {
+          rawCodes = JSON.parse(fs.readFileSync(guestCodesPathLocal, "utf-8"));
+        } catch (err) {
+          console.error("Failed to parse guestCodes.json", err);
+        }
+      }
 
-      // Helper to stringify a guest consistently
-      const guestKey = (g: any) => JSON.stringify(g ?? {});
+      const responseCodes: Record<string, number> = {};
+      const guestKey = (guest: any) => JSON.stringify(guest ?? {});
+      const claimedIndices = new Set<number>();
       const guestIndicesByKey = new Map<string, number[]>();
+
       guests.forEach((guest, idx) => {
         const key = guestKey(guest);
         const list = guestIndicesByKey.get(key) ?? [];
         list.push(idx);
         guestIndicesByKey.set(key, list);
       });
+
+      const claimRawIndex = (idx: number): number => {
+        if (idx < 0 || idx >= guests.length || claimedIndices.has(idx)) {
+          return -1;
+        }
+        claimedIndices.add(idx);
+        return idx;
+      };
 
       const takeIndexByGuestSnapshot = (snapshotGuest: any, preferredIndex?: number): number => {
         const key = guestKey(snapshotGuest);
@@ -128,109 +149,47 @@ async function startServer() {
           if (preferredPos !== -1) {
             const [idx] = list.splice(preferredPos, 1);
             guestIndicesByKey.set(key, list);
-            assignedIndices.add(idx);
+            claimedIndices.add(idx);
             return idx;
           }
         }
 
         const idx = list.shift() as number;
         guestIndicesByKey.set(key, list);
-        assignedIndices.add(idx);
+        claimedIndices.add(idx);
         return idx;
       };
 
-      const claimRawIndex = (idx: number): number => {
-        if (idx < 0 || idx >= guests.length || assignedIndices.has(idx)) {
-          return -1;
-        }
-        assignedIndices.add(idx);
-        return idx;
-      };
-
-      // First, normalize any old-format entries (code -> index number)
+      // Support both old style (code -> index number)
+      // and new style (code -> { index, guest })
       for (const [code, entry] of Object.entries(rawCodes)) {
-        if (typeof entry === "number") {
-          const idx = claimRawIndex(entry);
-          if (idx !== -1) {
-            normalizedCodes[code] = { index: idx, guest: guests[idx] };
+        let idx = -1;
+        if (entry && typeof entry === "object" && "guest" in entry) {
+          idx = takeIndexByGuestSnapshot((entry as any).guest, (entry as any).index);
+        }
+
+        if (idx === -1 && typeof entry === "number") {
+          idx = claimRawIndex(entry);
+        }
+
+        if (idx === -1 && entry && typeof entry === "object" && "index" in entry) {
+          const rawIdx = (entry as any).index;
+          if (typeof rawIdx === "number") {
+            idx = claimRawIndex(rawIdx);
           }
-        } else if (entry && typeof entry === "object") {
-          const prevGuest = (entry as GuestCodeEntry).guest;
-          if (prevGuest) {
-            const idx = takeIndexByGuestSnapshot(prevGuest, (entry as GuestCodeEntry).index);
-            if (idx !== -1) {
-              normalizedCodes[code] = { index: idx, guest: guests[idx] };
-            }
-          }
-        }
-      }
-
-      const usedCodes = new Set(Object.keys(normalizedCodes));
-      let changed = false;
-
-      // Ensure every current guest has a code, based on its row contents
-      guests.forEach((guest, idx) => {
-        if (!assignedIndices.has(idx)) {
-          const code = randomCode(usedCodes);
-          normalizedCodes[code] = { index: idx, guest };
-          usedCodes.add(code);
-          assignedIndices.add(idx);
-          changed = true;
-        }
-      });
-
-      if (changed) saveGuestCodes(normalizedCodes);
-
-      // For the frontend we still expose codes as { code: index }
-      // Resolve by guest snapshot first so links remain stable even if rows move.
-      const responseCodes: Record<string, number> = {};
-      const claimedResponseIndices = new Set<number>();
-      const guestIndicesForResponse = new Map<string, number[]>();
-      guests.forEach((guest, idx) => {
-        const key = guestKey(guest);
-        const list = guestIndicesForResponse.get(key) ?? [];
-        list.push(idx);
-        guestIndicesForResponse.set(key, list);
-      });
-
-      const takeResponseIndexByGuest = (entry: GuestCodeEntry): number => {
-        const key = guestKey(entry.guest);
-        const list = guestIndicesForResponse.get(key);
-        if (list && list.length > 0) {
-          if (typeof entry.index === "number") {
-            const preferredPos = list.indexOf(entry.index);
-            if (preferredPos !== -1) {
-              const [idx] = list.splice(preferredPos, 1);
-              guestIndicesForResponse.set(key, list);
-              claimedResponseIndices.add(idx);
-              return idx;
-            }
-          }
-
-          const idx = list.shift() as number;
-          guestIndicesForResponse.set(key, list);
-          claimedResponseIndices.add(idx);
-          return idx;
         }
 
-        if (
-          typeof entry.index === "number" &&
-          entry.index >= 0 &&
-          entry.index < guests.length &&
-          !claimedResponseIndices.has(entry.index)
-        ) {
-          claimedResponseIndices.add(entry.index);
-          return entry.index;
-        }
-
-        return -1;
-      };
-
-      for (const [code, entry] of Object.entries(normalizedCodes)) {
-        const idx = takeResponseIndexByGuest(entry);
         if (idx >= 0 && idx < guests.length) {
           responseCodes[code] = idx;
         }
+      }
+
+      // Fallback: if no codes at all, generate simple deterministic ones
+      if (Object.keys(responseCodes).length === 0 && guests.length > 0) {
+        guests.forEach((_, idx) => {
+          const code = `G${(idx + 1).toString().padStart(5, "0")}`;
+          responseCodes[code] = idx;
+        });
       }
 
       return res.json({ guests, codes: responseCodes });
