@@ -133,7 +133,6 @@ function main() {
 
     const usedCodes = new Set(Object.keys(normalizedCodes));
     let newCodesGenerated = 0;
-    let changed = false;
 
     // Generate codes for guest rows that do not yet have a code
     guests.forEach((guest, idx) => {
@@ -143,18 +142,17 @@ function main() {
         usedCodes.add(code);
         assignedIndices.add(idx);
         newCodesGenerated++;
-        changed = true;
         console.log(
           `[BUILD] Generated code ${code} for new guest: ${JSON.stringify(guest).substring(0, 50)}...`
         );
       }
     });
 
-    if (changed) {
-      saveGuestCodes(normalizedCodes);
-    } else {
-      console.log("[BUILD] No new guests detected. guestCodes.json unchanged.");
-    }
+    // Always rewrite guestCodes.json so that guest snapshots
+    // (names, etc.) stay in sync with the latest Excel rows,
+    // even if no new guests were added.
+    saveGuestCodes(normalizedCodes);
+
     console.log(
       `[BUILD] ✓ Codes synced. Generated ${newCodesGenerated} new code(s) for ${guests.length} total guests.`
     );
