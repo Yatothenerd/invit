@@ -6,6 +6,9 @@
   "functions": {
     "api/guests.ts": {
       "includeFiles": "src/WeddingGuest.xlsx"
+    },
+    "api/preview.ts": {
+      "includeFiles": "src/WeddingGuest.xlsx"
     }
   },
   "headers": [
@@ -29,6 +32,14 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/api/preview/(?<code>[a-zA-Z0-9]{6})",
+      "destination": "/api/preview?code=$code"
+    },
+    {
+      "source": "/(?<code>[a-zA-Z0-9]{6})$",
+      "destination": "/api/preview?code=$code"
+    },
     {
       "source": "/((?!api).*)",
       "destination": "/"

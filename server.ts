@@ -260,12 +260,121 @@ async function startServer() {
     }
   });
 
+  // Helper to get guest name by code
+  function getGuestNameByCode(code: string): string | null {
+    const codes = loadGuestCodes();
+    const entry = codes[code];
+
+    if (!entry) {
+      return null;
+    }
+
+    let guestData: any = null;
+
+    if (typeof entry === "number") {
+      try {
+        const excelPathSrc = path.join(process.cwd(), "src", "WeddingGuest.xlsx");
+        const excelPathRoot = path.join(process.cwd(), "WeddingGuest.xlsx");
+        const excelPath = fs.existsSync(excelPathSrc)
+          ? excelPathSrc
+          : fs.existsSync(excelPathRoot)
+          ? excelPathRoot
+          : null;
+
+        if (excelPath) {
+          const workbook = XLSX.readFile(excelPath);
+          const sheetName = workbook.SheetNames[0];
+          const guests = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+          guestData = guests[entry];
+        }
+      } catch (err) {
+        console.error("Error loading guest by index", err);
+      }
+    } else if (entry && typeof entry === "object" && "guest" in entry) {
+      guestData = (entry as GuestCodeEntry).guest;
+    }
+
+    if (guestData) {
+      return (
+        guestData.name ||
+        guestData.Name ||
+        guestData.Guestname ||
+        (Object.values(guestData).find((v) => typeof v === "string" && (v as string).trim().length > 0) as string | undefined) ||
+        null
+      );
+    }
+
+    return null;
+  }
+
+  // Helper to generate personalized HTML
+  function generatePersonalizedHTML(guestName?: string): string {
+    const title = guestName ? `${guestName}'s Wedding Invitation` : "Wedding Invitation - You're Invited!";
+    const description = guestName
+      ? `Dear ${guestName}, we joyfully invite you to celebrate our special day!`
+      : "We joyfully invite you to celebrate our special day. Please join us for our wedding celebration.";
+
+    return `<!doctype html>
+<html lang="en" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${title}</title>
+
+    <!-- Social sharing / thumbnail -->
+    <meta property="fb:app_id" content="911892381556089" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://invite.godyato.xyz/" />
+    <meta property="og:title" content="${title}" />
+    <meta property="og:site_name" content="Wedding Invitation" />
+    <meta property="og:description" content="${description}" />
+    <meta property="og:image" content="https://invite.godyato.xyz/image/Asset/Thumbnail_Messenger.jpg" />
+    <meta property="og:image:url" content="https://invite.godyato.xyz/image/Asset/Thumbnail_Messenger.jpg" />
+    <meta property="og:image:secure_url" content="https://invite.godyato.xyz/image/Asset/Thumbnail_Messenger.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Wedding Invitation" />
+    <meta property="og:locale" content="en_US" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="${title}" />
+    <meta name="twitter:description" content="${description}" />
+    <meta name="twitter:image" content="https://invite.godyato.xyz/image/Asset/Thumbnail_Messenger.jpg" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"><\/script>
+  </body>
+</html>`;
+  }
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
     });
+
+    // Handle guest code routes with SSR before Vite middleware
+    app.get("/:guestCode", (req, res, next) => {
+      const code = req.params.guestCode;
+      // Only intercept 6-character alphanumeric strings
+      if (code && /^[a-zA-Z0-9]{6}$/.test(code)) {
+        try {
+          const guestName = getGuestNameByCode(code);
+          const html = generatePersonalizedHTML(guestName || undefined);
+          res.setHeader("Content-Type", "text/html; charset=utf-8");
+          res.send(html);
+        } catch (error) {
+          console.error("Error generating SSR HTML for code", code, error);
+          next();
+        }
+      } else {
+        next();
+      }
+    });
+
     app.use(vite.middlewares);
   } else {
     app.use(express.static(path.join(process.cwd(), "dist")));
