@@ -80,7 +80,7 @@ function getGuestNameByCode(code: string): string | null {
   return null;
 }
 
-function generateHTML(guestName?: string): string {
+function generateHTML(pageUrl: string, guestName?: string): string {
   const title = guestName ? `${guestName}'s Wedding Invitation` : 'Wedding Invitation - You\'re Invited!';
   const description = guestName
     ? `Dear ${guestName}, we joyfully invite you to celebrate our special day!`
@@ -96,7 +96,7 @@ function generateHTML(guestName?: string): string {
     <!-- Social sharing / thumbnail -->
     <meta property="fb:app_id" content="911892381556089" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://invite.godyato.xyz/" />
+    <meta property="og:url" content="${pageUrl}" />
     <meta property="og:title" content="${title}" />
     <meta property="og:site_name" content="Wedding Invitation" />
     <meta property="og:description" content="${description}" />
@@ -130,10 +130,11 @@ export default function handler(req: any, res: any) {
   }
 
   try {
+    const pageUrl = `https://invite.godyato.xyz/${code}`;
     const guestName = getGuestNameByCode(code);
-    const html = generateHTML(guestName || undefined);
-    res.setHeader('Content-Type', 'text/html; charset=utensils');
-    res.send(html);
+    const html = generateHTML(pageUrl, guestName || undefined);
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.status(200).send(html);
   } catch (error) {
     console.error('/api/preview error', error);
     res.status(500).json({ error: 'Failed to generate preview' });
