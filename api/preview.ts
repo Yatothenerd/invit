@@ -2,82 +2,23 @@
  * Dynamic SSR endpoint for social media previews
  * Generates personalized meta tags for each guest code
  */
-import path from 'path';
-import fs from 'fs';
-import * as XLSX from 'xlsx/xlsx.mjs';
+import { createClient } from '@supabase/supabase-js';
 
-XLSX.set_fs(fs as any);
+const SUPABASE_URL = 'https://toqcfxmppbuciuapupct.supabase.co';
+const SUPABASE_SERVICE_ROLE_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvcWNmeG1wcGJ1Y2l1YXB1cGN0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjQ1MjMzOSwiZXhwIjoyMDg4MDI4MzM5fQ.xiXlCLWTwPKkZS_-sbb8zGBop_uqNt5rsmR7yxnLRuA';
 
-interface GuestCodeEntry {
-  index: number;
-  guest: any;
-}
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-function loadGuestCodes(): Record<string, GuestCodeEntry | number> {
-  const guestCodesPath = path.join(process.cwd(), 'guestCodes.json');
-  if (fs.existsSync(guestCodesPath)) {
-    try {
-      return JSON.parse(fs.readFileSync(guestCodesPath, 'utf-8'));
-    } catch {
-      return {};
-    }
-  }
-  return {};
-}
+async function getGuestNameByCode(code: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('guestlist_tb')
+    .select('guestname')
+    .eq('guestcode', code)
+    .single();
 
-function loadGuests(): any[] {
-  const cwd = process.cwd();
-  const excelCandidates = [
-    path.join(cwd, 'src', 'WeddingGuest.xlsx'),
-    path.join(cwd, 'WeddingGuest.xlsx'),
-    '/var/task/src/WeddingGuest.xlsx',
-    '/var/task/WeddingGuest.xlsx',
-  ];
-  const excelPath = excelCandidates.find((candidate) => fs.existsSync(candidate));
-
-  if (excelPath) {
-    const workbook = XLSX.readFile(excelPath);
-    const sheetName = workbook.SheetNames[0];
-    return XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-  }
-
-  const jsonPath = path.join(cwd, 'guests.json');
-  if (fs.existsSync(jsonPath)) {
-    const raw = fs.readFileSync(jsonPath, 'utf-8');
-    return JSON.parse(raw);
-  }
-
-  return [];
-}
-
-function getGuestNameByCode(code: string): string | null {
-  const codes = loadGuestCodes();
-  const entry = codes[code];
-
-  if (!entry) {
-    return null;
-  }
-
-  let guestData: any = null;
-
-  if (typeof entry === 'number') {
-    const guests = loadGuests();
-    guestData = guests[entry];
-  } else if (entry && typeof entry === 'object' && 'guest' in entry) {
-    guestData = (entry as GuestCodeEntry).guest;
-  }
-
-  if (guestData) {
-    return (
-      guestData.name ||
-      guestData.Name ||
-      guestData.Guestname ||
-      (Object.values(guestData).find((v) => typeof v === 'string' && (v as string).trim().length > 0) as string | undefined) ||
-      null
-    );
-  }
-
-  return null;
+  if (error || !data) return null;
+  return data.guestname || null;
 }
 
 function generateHTML(pageUrl: string, guestName?: string): string {
@@ -121,7 +62,7 @@ function generateHTML(pageUrl: string, guestName?: string): string {
 </html>`;
 }
 
-export default function handler(req: any, res: any) {
+export default async function handler(req: any, res: any) {
   const code = req.query.code || req.url?.split('?')[1]?.split('=')[1];
 
   if (!code || typeof code !== 'string' || code.length !== 6) {
@@ -131,7 +72,7 @@ export default function handler(req: any, res: any) {
 
   try {
     const pageUrl = `https://invite.godyato.xyz/${code}`;
-    const guestName = getGuestNameByCode(code);
+    const guestName = await getGuestNameByCode(code);
     const html = generateHTML(pageUrl, guestName || undefined);
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.status(200).send(html);

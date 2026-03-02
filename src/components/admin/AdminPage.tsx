@@ -1,11 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Guest } from "../../types";
 
-const CODE_LENGTH = 6;
-const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-// No longer used: codes are now random and come from the backend
-
 const AdminPage = () => {
   const [guests, setGuests] = useState<Guest[]>([]);
   const [codes, setCodes] = useState<Record<string, number>>({});
@@ -13,45 +8,45 @@ const AdminPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await fetch("/api/guests");
-        if (!response.ok) {
-          throw new Error(`Request failed: ${response.status}`);
-        }
-        const data = await response.json();
-        // Defensive: handle both array and object response for backward compatibility
-        if (Array.isArray(data)) {
-          setGuests(data);
-          setCodes({});
-        } else {
-          setGuests(data.guests || []);
-          setCodes(data.codes || {});
-        }
-      } catch (err: any) {
-        console.error("Error fetching guest names:", err);
-        setError("Failed to load guests");
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Editing state
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editCode, setEditCode] = useState("");
+  const [saving, setSaving] = useState(false);
 
-    load();
+  // Add guest state
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newGuestName, setNewGuestName] = useState("");
+  const [adding, setAdding] = useState(false);
+
+  const fetchGuests = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch("/api/guests");
+      if (!response.ok) throw new Error(`Request failed: ${response.status}`);
+      const data = await response.json();
+
+      const guestList: Guest[] = data.guests || [];
+      setGuests(guestList);
+
+      const codesMap: Record<string, number> = data.codes || {};
+      setCodes(codesMap);
+    } catch (err: any) {
+      console.error("Error fetching guests:", err);
+      setError("Failed to load guests");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchGuests();
   }, []);
 
   const renderGuestName = (guest: Guest) => {
-    // Prefer common column names first
-    const direct = guest.name || guest.Name || (guest as any).Guestname;
-    if (direct) return direct as string;
-
-    // Fallback: first non-empty string value among all columns
-    const firstNonEmpty = Object.values(guest).find(
-      (v) => typeof v === "string" && v.trim().length > 0
-    );
-    return (firstNonEmpty as string) || "(no name)";
+    return guest.name || guest.Name || (guest as any).Guestname || "(no name)";
   };
 
   const filteredGuests = guests.filter((g) => {
@@ -60,16 +55,9 @@ const AdminPage = () => {
   });
 
   const buildGuestLink = (guest: Guest): string | null => {
-    // Find the index of this guest in the full guests array by deep equality
-    const idx = guests.findIndex(g => JSON.stringify(g) === JSON.stringify(guest));
-    if (idx === -1) return null;
-
-    // Find the code for this guest index
-    const code = Object.entries(codes).find(([c, i]) => i === idx)?.[0];
-    if (!code) return null;
-
+    if (!guest.code) return null;
     const origin = window.location.origin;
-    return `${origin}/${code}`;
+    return `${origin}/${guest.code}`;
   };
 
   const handleCopyLink = (guest: Guest) => {
@@ -78,15 +66,10 @@ const AdminPage = () => {
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(url).then(
-        () => {
-          alert("Link copied to clipboard");
-        },
-        () => {
-          alert("Could not copy link");
-        }
+        () => alert("Link copied to clipboard"),
+        () => alert("Could not copy link")
       );
     } else {
-      // Fallback for very old browsers
       const textarea = document.createElement("textarea");
       textarea.value = url;
       document.body.appendChild(textarea);
@@ -99,6 +82,81 @@ const AdminPage = () => {
       } finally {
         document.body.removeChild(textarea);
       }
+    }
+  };
+
+  const handleStartEdit = (guest: Guest) => {
+    setEditingId(guest.id ?? null);
+    setEditName(renderGuestName(guest));
+    setEditCode(guest.code || "");
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditName("");
+    setEditCode("");
+  };
+
+  const handleSaveEdit = async () => {
+    if (editingId === null) return;
+    setSaving(true);
+    try {
+      const response = await fetch("/api/guests", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: editingId, guestname: editName }),
+      });
+
+      if (!response.ok) {
+        let errMsg = `Server returned ${response.status}`;
+        try {
+          const err = await response.json();
+          errMsg = err.error || errMsg;
+        } catch {
+          // response body wasn't JSON
+        }
+        throw new Error(errMsg);
+      }
+
+      setEditingId(null);
+      setEditName("");
+      setEditCode("");
+      await fetchGuests();
+    } catch (err: any) {
+      console.error("Error updating guest:", err);
+      alert("Failed to save changes: " + (err.message || err));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAddGuest = async () => {
+    if (!newGuestName.trim()) return;
+    setAdding(true);
+    try {
+      const response = await fetch("/api/guests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ guestname: newGuestName.trim() }),
+      });
+
+      if (!response.ok) {
+        let errMsg = `Server returned ${response.status}`;
+        try {
+          const err = await response.json();
+          errMsg = err.error || errMsg;
+        } catch {}
+        throw new Error(errMsg);
+      }
+
+      setNewGuestName("");
+      setShowAddForm(false);
+      await fetchGuests();
+    } catch (err: any) {
+      console.error("Error adding guest:", err);
+      alert("Failed to add guest: " + (err.message || err));
+    } finally {
+      setAdding(false);
     }
   };
 
@@ -115,7 +173,7 @@ const AdminPage = () => {
         style={{
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "baseline",
+          alignItems: "center",
           marginBottom: "1.25rem",
         }}
       >
@@ -133,7 +191,70 @@ const AdminPage = () => {
             Total guests: {guests.length}
           </p>
         </div>
+        <button
+          type="button"
+          onClick={() => setShowAddForm(!showAddForm)}
+          style={{
+            padding: "0.5rem 1rem",
+            fontSize: "0.85rem",
+            borderRadius: 9999,
+            border: "1px solid #16a34a",
+            backgroundColor: showAddForm ? "#ffffff" : "#16a34a",
+            color: showAddForm ? "#16a34a" : "#ffffff",
+            cursor: "pointer",
+            fontWeight: 600,
+          }}
+        >
+          {showAddForm ? "Cancel" : "+ Add Guest"}
+        </button>
       </header>
+
+      {showAddForm && (
+        <div
+          style={{
+            marginBottom: "1rem",
+            padding: "0.75rem",
+            border: "1px solid #d1fae5",
+            borderRadius: 8,
+            backgroundColor: "#f0fdf4",
+            display: "flex",
+            gap: "0.5rem",
+            alignItems: "center",
+          }}
+        >
+          <input
+            type="text"
+            placeholder="Enter guest name..."
+            value={newGuestName}
+            onChange={(e) => setNewGuestName(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleAddGuest()}
+            style={{
+              flex: 1,
+              padding: "0.5rem 0.75rem",
+              borderRadius: 6,
+              border: "1px solid #d1d5db",
+              fontSize: "0.95rem",
+            }}
+          />
+          <button
+            type="button"
+            onClick={handleAddGuest}
+            disabled={adding || !newGuestName.trim()}
+            style={{
+              padding: "0.5rem 1rem",
+              fontSize: "0.85rem",
+              borderRadius: 9999,
+              border: "none",
+              backgroundColor: adding || !newGuestName.trim() ? "#9ca3af" : "#16a34a",
+              color: "#ffffff",
+              cursor: adding || !newGuestName.trim() ? "not-allowed" : "pointer",
+              fontWeight: 600,
+            }}
+          >
+            {adding ? "Adding..." : "Add"}
+          </button>
+        </div>
+      )}
 
       <div
         style={{
@@ -175,7 +296,7 @@ const AdminPage = () => {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "64px 1fr auto",
+              gridTemplateColumns: "48px 1fr 120px auto",
               padding: "0.5rem 0.75rem",
               backgroundColor: "#f9fafb",
               fontSize: "0.8rem",
@@ -186,6 +307,7 @@ const AdminPage = () => {
           >
             <span>#</span>
             <span>Name</span>
+            <span>Code</span>
             <span>Actions</span>
           </div>
           {filteredGuests.length === 0 ? (
@@ -193,55 +315,134 @@ const AdminPage = () => {
               No guests found.
             </p>
           ) : (
-            filteredGuests.map((guest, index) => (
-              <div
-                key={index}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "64px 1fr auto",
-                  padding: "0.5rem 0.75rem",
-                  borderTop: "1px solid #f3f4f6",
-                  fontSize: "0.9rem",
-                }}
-              >
-                <span style={{ color: "#9ca3af" }}>{index + 1}</span>
-                <span>{renderGuestName(guest)}</span>
-                <span style={{ textAlign: "right", display: "flex", gap: "0.35rem", justifyContent: "flex-end" }}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const url = buildGuestLink(guest);
-                      if (!url) return;
-                      window.open(url, "_blank");
-                    }}
-                    style={{
-                      padding: "0.25rem 0.6rem",
-                      fontSize: "0.8rem",
-                      borderRadius: 9999,
-                      border: "1px solid #d1d5db",
-                      backgroundColor: "#ffffff",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Open
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleCopyLink(guest)}
-                    style={{
-                      padding: "0.25rem 0.6rem",
-                      fontSize: "0.8rem",
-                      borderRadius: 9999,
-                      border: "1px solid #d1d5db",
-                      backgroundColor: "#f9fafb",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Copy
-                  </button>
-                </span>
-              </div>
-            ))
+            filteredGuests.map((guest, index) => {
+              const isEditing = editingId === guest.id;
+              return (
+                <div
+                  key={guest.id ?? index}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "48px 1fr 120px auto",
+                    padding: "0.5rem 0.75rem",
+                    borderTop: "1px solid #f3f4f6",
+                    fontSize: "0.9rem",
+                    alignItems: "center",
+                    backgroundColor: isEditing ? "#fffbeb" : "transparent",
+                  }}
+                >
+                  <span style={{ color: "#9ca3af" }}>{index + 1}</span>
+
+                  {isEditing ? (
+                    <input
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      style={{
+                        padding: "0.25rem 0.5rem",
+                        borderRadius: 4,
+                        border: "1px solid #d1d5db",
+                        fontSize: "0.85rem",
+                        marginRight: "0.5rem",
+                      }}
+                    />
+                  ) : (
+                    <span>{renderGuestName(guest)}</span>
+                  )}
+
+                  <span style={{ color: "#6b7280", fontFamily: "monospace", fontSize: "0.8rem" }}>
+                    {guest.code || "—"}
+                  </span>
+
+                  <span style={{ textAlign: "right", display: "flex", gap: "0.35rem", justifyContent: "flex-end", flexWrap: "wrap" }}>
+                    {isEditing ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={handleSaveEdit}
+                          disabled={saving}
+                          style={{
+                            padding: "0.25rem 0.6rem",
+                            fontSize: "0.8rem",
+                            borderRadius: 9999,
+                            border: "1px solid #16a34a",
+                            backgroundColor: "#16a34a",
+                            color: "#fff",
+                            cursor: saving ? "not-allowed" : "pointer",
+                            opacity: saving ? 0.6 : 1,
+                          }}
+                        >
+                          {saving ? "..." : "Save"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleCancelEdit}
+                          disabled={saving}
+                          style={{
+                            padding: "0.25rem 0.6rem",
+                            fontSize: "0.8rem",
+                            borderRadius: 9999,
+                            border: "1px solid #d1d5db",
+                            backgroundColor: "#ffffff",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => handleStartEdit(guest)}
+                          style={{
+                            padding: "0.25rem 0.6rem",
+                            fontSize: "0.8rem",
+                            borderRadius: 9999,
+                            border: "1px solid #3b82f6",
+                            backgroundColor: "#3b82f6",
+                            color: "#fff",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const url = buildGuestLink(guest);
+                            if (!url) return;
+                            window.open(url, "_blank");
+                          }}
+                          style={{
+                            padding: "0.25rem 0.6rem",
+                            fontSize: "0.8rem",
+                            borderRadius: 9999,
+                            border: "1px solid #d1d5db",
+                            backgroundColor: "#ffffff",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Open
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyLink(guest)}
+                          style={{
+                            padding: "0.25rem 0.6rem",
+                            fontSize: "0.8rem",
+                            borderRadius: 9999,
+                            border: "1px solid #d1d5db",
+                            backgroundColor: "#f9fafb",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Copy
+                        </button>
+                      </>
+                    )}
+                  </span>
+                </div>
+              );
+            })
           )}
         </div>
       )}

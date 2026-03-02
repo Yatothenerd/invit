@@ -6,7 +6,9 @@ export interface Wish {
 }
 
 export interface Guest {
-  Name?: string;
+  id?: number;
   name?: string;
+  Name?: string;
+  code?: string;
   [key: string]: any;
 }

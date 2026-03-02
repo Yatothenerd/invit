@@ -2,9 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Wish, Guest } from '../types';
 
 const CODE_LENGTH = 6;
-const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
-// No longer used: codes are now random and come from the backend
 
 export const useWeddingApp = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -44,15 +41,8 @@ export const useWeddingApp = () => {
           const idx = codes[effectiveCode];
           if (typeof idx === 'number' && guests[idx]) {
             const entry = guests[idx];
-            const nameFromEntry =
-              entry.name ||
-              (entry as any).Name ||
-              (entry as any).Guestname ||
-              (Object.values(entry).find(
-                (v) => typeof v === 'string' && v.trim().length > 0
-              ) as string | undefined);
-            if (nameFromEntry) {
-              setGuestName(nameFromEntry);
+            if (entry.name) {
+              setGuestName(entry.name);
             }
           }
         } catch (err) {
@@ -74,9 +64,7 @@ export const useWeddingApp = () => {
     try {
       const response = await fetch('/api/guests');
       const data = await response.json();
-      // API returns { guests, codes }; fall back to array for
-      // backward compatibility when running against older servers.
-      setGuests(Array.isArray(data) ? data : (data.guests || []));
+      setGuests(data.guests || []);
     } catch (error) {
       console.error("Error fetching guests:", error);
     }

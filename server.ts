@@ -1,50 +1,18 @@
-// --- Guest code mapping helpers ---
+// --- Supabase client for guest lookups ---
+import { createClient } from '@supabase/supabase-js';
+
+const SUPABASE_URL = 'https://toqcfxmppbuciuapupct.supabase.co';
+const SUPABASE_SERVICE_ROLE_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvcWNmeG1wcGJ1Y2l1YXB1cGN0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjQ1MjMzOSwiZXhwIjoyMDg4MDI4MzM5fQ.xiXlCLWTwPKkZS_-sbb8zGBop_uqNt5rsmR7yxnLRuA';
+
+const supabaseServer = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
 const CODE_LENGTH = 6;
-const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-const guestCodesPath = path.join(process.cwd(), "guestCodes.json");
 
-// Each code is stored with a snapshot of the guest row so we
-// can find the same person again even if rows are reordered
-// or new rows are inserted above them.
-interface GuestCodeEntry {
-  index: number; // current index when saved (for convenience)
-  guest: any; // snapshot of the row when the code was created
-}
-
-function loadGuestCodes(): Record<string, GuestCodeEntry | number> {
-  if (fs.existsSync(guestCodesPath)) {
-    try {
-      return JSON.parse(fs.readFileSync(guestCodesPath, "utf-8"));
-    } catch {
-      return {};
-    }
-  }
-  return {};
-}
-
-function saveGuestCodes(codes: Record<string, GuestCodeEntry>) {
-  fs.writeFileSync(guestCodesPath, JSON.stringify(codes, null, 2));
-}
-
-function randomCode(existing: Set<string>): string {
-  let code = "";
-  do {
-    code = Array.from({ length: CODE_LENGTH }, () => ALPHABET[Math.floor(Math.random() * ALPHABET.length)]).join("");
-  } while (existing.has(code));
-  return code;
-}
 import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
-import * as XLSX from "xlsx/xlsx.mjs";
 import fs from "fs";
-import multer from "multer";
-
-// Configure XLSX for Node file access
-XLSX.set_fs(fs as any);
-
-// Multer for optional XLSX uploads
-const upload = multer({ dest: "uploads/" });
 
 async function startServer() {
   const app = express();
@@ -75,195 +43,117 @@ async function startServer() {
     res.json(wish);
   });
 
-  // Endpoint to fetch guest names
-  // /api/guests returns { guests: [...], codes: { code: index } }
-  // Logic is aligned with the Vercel serverless function in api/guests.ts
-  app.get("/api/guests", (req, res) => {
+  // Endpoint to fetch guest names from Supabase
+  app.get("/api/guests", async (req, res) => {
     try {
-      const cwd = process.cwd();
+      const { data, error } = await supabaseServer
+        .from('guestlist_tb')
+        .select('*')
+        .order('id', { ascending: true });
 
-      // 1) Load guests from Excel (preferred) or JSON
-      const excelCandidates = [
-        path.join(cwd, "src", "WeddingGuest.xlsx"),
-        path.join(cwd, "WeddingGuest.xlsx"),
-      ];
-      const excelPath = excelCandidates.find((candidate) => fs.existsSync(candidate)) ?? null;
-
-      let guests: any[] = [];
-      if (excelPath) {
-        const workbook = XLSX.readFile(excelPath);
-        const sheetName = workbook.SheetNames[0];
-        guests = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-        console.log(`[API] Loaded ${guests.length} guests from Excel: ${excelPath}`);
-      } else {
-        const jsonPath = path.join(cwd, "guests.json");
-        if (fs.existsSync(jsonPath)) {
-          const raw = fs.readFileSync(jsonPath, "utf-8");
-          guests = JSON.parse(raw);
-          console.log(`[API] Loaded ${guests.length} guests from guests.json`);
-        } else {
-          console.log("[API] No guest source found");
-        }
+      if (error) {
+        console.error("/api/guests Supabase error", error);
+        return res.status(500).json({ error: "Failed to fetch guests from database" });
       }
 
-      // 2) Load pre-generated codes from guestCodes.json (treated as read-only)
-      const guestCodesPathLocal = path.join(cwd, "guestCodes.json");
-      let rawCodes: Record<string, any> = {};
-      if (fs.existsSync(guestCodesPathLocal)) {
-        try {
-          rawCodes = JSON.parse(fs.readFileSync(guestCodesPathLocal, "utf-8"));
-        } catch (err) {
-          console.error("Failed to parse guestCodes.json", err);
-        }
-      }
+      const guests = (data || []).map((row: any) => ({
+        name: row.guestname,
+        code: row.guestcode,
+        id: row.id,
+      }));
 
-      const responseCodes: Record<string, number> = {};
-      const guestKey = (guest: any) => JSON.stringify(guest ?? {});
-      const claimedIndices = new Set<number>();
-      const guestIndicesByKey = new Map<string, number[]>();
-
-      guests.forEach((guest, idx) => {
-        const key = guestKey(guest);
-        const list = guestIndicesByKey.get(key) ?? [];
-        list.push(idx);
-        guestIndicesByKey.set(key, list);
+      const codes: Record<string, number> = {};
+      (data || []).forEach((row: any, idx: number) => {
+        codes[row.guestcode] = idx;
       });
 
-      const claimRawIndex = (idx: number): number => {
-        if (idx < 0 || idx >= guests.length || claimedIndices.has(idx)) {
-          return -1;
-        }
-        claimedIndices.add(idx);
-        return idx;
-      };
-
-      const takeIndexByGuestSnapshot = (snapshotGuest: any, preferredIndex?: number): number => {
-        const key = guestKey(snapshotGuest);
-        const list = guestIndicesByKey.get(key);
-        if (!list || list.length === 0) {
-          return -1;
-        }
-
-        if (typeof preferredIndex === "number") {
-          const preferredPos = list.indexOf(preferredIndex);
-          if (preferredPos !== -1) {
-            const [idx] = list.splice(preferredPos, 1);
-            guestIndicesByKey.set(key, list);
-            claimedIndices.add(idx);
-            return idx;
-          }
-        }
-
-        const idx = list.shift() as number;
-        guestIndicesByKey.set(key, list);
-        claimedIndices.add(idx);
-        return idx;
-      };
-
-      // Support both old style (code -> index number)
-      // and new style (code -> { index, guest })
-      for (const [code, entry] of Object.entries(rawCodes)) {
-        let idx = -1;
-        if (entry && typeof entry === "object" && "guest" in entry) {
-          idx = takeIndexByGuestSnapshot((entry as any).guest, (entry as any).index);
-        }
-
-        if (idx === -1 && typeof entry === "number") {
-          idx = claimRawIndex(entry);
-        }
-
-        if (idx === -1 && entry && typeof entry === "object" && "index" in entry) {
-          const rawIdx = (entry as any).index;
-          if (typeof rawIdx === "number") {
-            idx = claimRawIndex(rawIdx);
-          }
-        }
-
-        if (idx >= 0 && idx < guests.length) {
-          responseCodes[code] = idx;
-        }
-      }
-
-      // Fallback: if no codes at all, generate simple deterministic ones
-      if (Object.keys(responseCodes).length === 0 && guests.length > 0) {
-        guests.forEach((_, idx) => {
-          const code = `G${(idx + 1).toString().padStart(5, "0")}`;
-          responseCodes[code] = idx;
-        });
-      }
-
-      return res.json({ guests, codes: responseCodes });
+      return res.json({ guests, codes });
     } catch (error) {
       console.error("/api/guests error", error);
       res.status(500).json({ error: "Failed to fetch guest names" });
     }
   });
 
-  // Endpoint to upload XLSX file and convert to JSON (optional admin tool)
-  app.post("/api/upload-guests", upload.single("file"), (req, res) => {
+  // Endpoint to update a guest in Supabase
+  app.put("/api/guests", async (req, res) => {
     try {
-      const filePath = (req as any).file?.path as string | undefined;
-      if (!filePath) {
-        return res.status(400).json({ error: "No file uploaded" });
+      const { id, guestname, guestcode } = req.body || {};
+      if (!id) {
+        return res.status(400).json({ error: "Missing guest id" });
       }
-      const workbook = XLSX.readFile(filePath);
-      const sheetName = workbook.SheetNames[0];
-      const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
-      // Save JSON data to a file
-      fs.writeFileSync("guests.json", JSON.stringify(jsonData, null, 2));
+      const update: Record<string, any> = {};
+      if (guestname !== undefined) update.guestname = guestname;
+      if (guestcode !== undefined) update.guestcode = guestcode;
 
-      res.json({ message: "File uploaded and converted successfully", data: jsonData });
+      const { error } = await supabaseServer
+        .from("guestlist_tb")
+        .update(update)
+        .eq("id", id);
+
+      if (error) {
+        console.error("/api/guests PUT error", error);
+        return res.status(500).json({ error: "Failed to update guest" });
+      }
+
+      return res.json({ success: true });
     } catch (error) {
-      res.status(500).json({ error: "Failed to process file" });
+      console.error("/api/guests PUT error", error);
+      res.status(500).json({ error: "Failed to update guest" });
     }
   });
 
-  // Helper to get guest name by code
-  function getGuestNameByCode(code: string): string | null {
-    const codes = loadGuestCodes();
-    const entry = codes[code];
-
-    if (!entry) {
-      return null;
-    }
-
-    let guestData: any = null;
-
-    if (typeof entry === "number") {
-      try {
-        const excelPathSrc = path.join(process.cwd(), "src", "WeddingGuest.xlsx");
-        const excelPathRoot = path.join(process.cwd(), "WeddingGuest.xlsx");
-        const excelPath = fs.existsSync(excelPathSrc)
-          ? excelPathSrc
-          : fs.existsSync(excelPathRoot)
-          ? excelPathRoot
-          : null;
-
-        if (excelPath) {
-          const workbook = XLSX.readFile(excelPath);
-          const sheetName = workbook.SheetNames[0];
-          const guests = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-          guestData = guests[entry];
-        }
-      } catch (err) {
-        console.error("Error loading guest by index", err);
+  // Endpoint to add a new guest (auto-generate code)
+  app.post("/api/guests", async (req, res) => {
+    try {
+      const { guestname } = req.body || {};
+      if (!guestname || !guestname.trim()) {
+        return res.status(400).json({ error: "Guest name is required" });
       }
-    } else if (entry && typeof entry === "object" && "guest" in entry) {
-      guestData = (entry as GuestCodeEntry).guest;
-    }
 
-    if (guestData) {
-      return (
-        guestData.name ||
-        guestData.Name ||
-        guestData.Guestname ||
-        (Object.values(guestData).find((v) => typeof v === "string" && (v as string).trim().length > 0) as string | undefined) ||
-        null
-      );
-    }
+      // Fetch existing codes to avoid duplicates
+      const { data: existing } = await supabaseServer
+        .from("guestlist_tb")
+        .select("guestcode");
+      const usedCodes = new Set((existing || []).map((r: any) => r.guestcode));
 
-    return null;
+      const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+      let code = "";
+      do {
+        code = Array.from({ length: 6 }, () => ALPHABET[Math.floor(Math.random() * ALPHABET.length)]).join("");
+      } while (usedCodes.has(code));
+
+      const { data: inserted, error } = await supabaseServer
+        .from("guestlist_tb")
+        .insert({ guestname: guestname.trim(), guestcode: code })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("/api/guests POST error", error);
+        return res.status(500).json({ error: "Failed to add guest" });
+      }
+
+      return res.status(201).json({
+        success: true,
+        guest: { id: inserted.id, name: inserted.guestname, code: inserted.guestcode },
+      });
+    } catch (error) {
+      console.error("/api/guests POST error", error);
+      res.status(500).json({ error: "Failed to add guest" });
+    }
+  });
+
+  // Helper to get guest name by code (from Supabase)
+  async function getGuestNameByCode(code: string): Promise<string | null> {
+    const { data, error } = await supabaseServer
+      .from('guestlist_tb')
+      .select('guestname')
+      .eq('guestcode', code)
+      .single();
+
+    if (error || !data) return null;
+    return data.guestname || null;
   }
 
   // Helper to generate personalized HTML
@@ -316,13 +206,15 @@ async function startServer() {
     });
 
     // Handle guest code routes with SSR before Vite middleware
-    app.get("/:guestCode", (req, res, next) => {
+    app.get("/:guestCode", async (req, res, next) => {
       const code = req.params.guestCode;
       // Only intercept 6-character alphanumeric strings
       if (code && /^[a-zA-Z0-9]{6}$/.test(code)) {
         try {
-          const guestName = getGuestNameByCode(code);
-          const html = generatePersonalizedHTML(guestName || undefined);
+          const guestName = await getGuestNameByCode(code);
+          const rawHtml = generatePersonalizedHTML(guestName || undefined);
+          // Let Vite transform the HTML so HMR and module resolution work
+          const html = await vite.transformIndexHtml(req.originalUrl, rawHtml);
           res.setHeader("Content-Type", "text/html; charset=utf-8");
           res.send(html);
         } catch (error) {
