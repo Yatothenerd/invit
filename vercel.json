@@ -3,6 +3,11 @@
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "functions": {
+    "api/guests.ts": {
+      "includeFiles": "src/WeddingGuest.xlsx"
+    }
+  },
   "rewrites": [
     {
       "source": "/((?!api).*)",

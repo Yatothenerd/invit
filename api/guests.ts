@@ -19,13 +19,13 @@ export default function handler(req: any, res: any) {
     const cwd = process.cwd();
 
     // 1) Load guests from Excel (preferred) or JSON, same logic as server.ts
-    const excelPathSrc = path.join(cwd, 'src', 'WeddingGuest.xlsx');
-    const excelPathRoot = path.join(cwd, 'WeddingGuest.xlsx');
-    const excelPath = fs.existsSync(excelPathSrc)
-      ? excelPathSrc
-      : fs.existsSync(excelPathRoot)
-      ? excelPathRoot
-      : null;
+    const excelCandidates = [
+      path.join(cwd, 'src', 'WeddingGuest.xlsx'),
+      path.join(cwd, 'WeddingGuest.xlsx'),
+      '/var/task/src/WeddingGuest.xlsx',
+      '/var/task/WeddingGuest.xlsx',
+    ];
+    const excelPath = excelCandidates.find((candidate) => fs.existsSync(candidate)) ?? null;
 
     let guests: any[] = [];
     if (excelPath) {

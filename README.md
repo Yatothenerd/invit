@@ -26,7 +26,9 @@ View your app in AI Studio: https://ai.studio/apps/7b40a33f-eed7-4e49-b124-4e610
 - Output directory: `dist`
 - APIs: the following serverless functions are available on Vercel:
    - `GET/POST /api/wishes` – in-memory wishes (resets on cold start).
-   - `GET /api/guests` – reads guests from `WeddingGuest.xlsx` or `guests.json` and uses `guestCodes.json` for codes.
+   - `GET /api/guests` – reads guests from `src/WeddingGuest.xlsx` on every request (fallback: `guests.json`) and uses `guestCodes.json` for codes.
    - `POST /api/upload-guests` – **disabled on Vercel**; use the local server to update guest data and commit the resulting files.
+
+When you push a new `src/WeddingGuest.xlsx` and redeploy, guest data is converted to JSON at runtime automatically by `/api/guests` (no manual conversion step needed).
 
 After pushing to a Git repo (GitHub/GitLab/Bitbucket), import the project in Vercel, verify the settings above, and deploy.
