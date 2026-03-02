@@ -41,9 +41,9 @@ function generateHTML(pageUrl: string, guestName?: string): string {
     <meta property="og:title" content="${title}" />
     <meta property="og:site_name" content="Wedding Invitation" />
     <meta property="og:description" content="${description}" />
-    <meta property="og:image" content="https://invite.godyato.xyz/image/Asset/Thumbnail_Messenger.jpg" />
-    <meta property="og:image:url" content="https://invite.godyato.xyz/image/Asset/Thumbnail_Messenger.jpg" />
-    <meta property="og:image:secure_url" content="https://invite.godyato.xyz/image/Asset/Thumbnail_Messenger.jpg" />
+    <meta property="og:image" content="https://invite.godyato.com/image/Asset/Thumbnail_Messenger.jpg" />
+    <meta property="og:image:url" content="https://invite.godyato.com/image/Asset/Thumbnail_Messenger.jpg" />
+    <meta property="og:image:secure_url" content="https://invite.godyato.com/image/Asset/Thumbnail_Messenger.jpg" />
     <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -53,7 +53,7 @@ function generateHTML(pageUrl: string, guestName?: string): string {
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="${title}" />
     <meta name="twitter:description" content="${description}" />
-    <meta name="twitter:image" content="https://invite.godyato.xyz/image/Asset/Thumbnail_Messenger.jpg" />
+    <meta name="twitter:image" content="https://invite.godyato.com/image/Asset/Thumbnail_Messenger.jpg" />
   </head>
   <body>
     <div id="root"></div>
@@ -71,7 +71,7 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const pageUrl = `https://invite.godyato.xyz/${code}`;
+    const pageUrl = `https://invite.godyato.com/${code}`;
     const guestName = await getGuestNameByCode(code);
     const html = generateHTML(pageUrl, guestName || undefined);
     res.setHeader('Content-Type', 'text/html; charset=utf-8');

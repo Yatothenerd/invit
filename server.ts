@@ -173,13 +173,13 @@ async function startServer() {
     <!-- Social sharing / thumbnail -->
     <meta property="fb:app_id" content="911235211757777" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://invite.godyato.xyz/" />
+    <meta property="og:url" content="https://invite.godyato.com/" />
     <meta property="og:title" content="${title}" />
     <meta property="og:site_name" content="Wedding Invitation" />
     <meta property="og:description" content="${description}" />
-    <meta property="og:image" content="https://invite.godyato.xyz/image/Asset/Thumbnail_Messenger.jpg" />
-    <meta property="og:image:url" content="https://invite.godyato.xyz/image/Asset/Thumbnail_Messenger.jpg" />
-    <meta property="og:image:secure_url" content="https://invite.godyato.xyz/image/Asset/Thumbnail_Messenger.jpg" />
+    <meta property="og:image" content="https://invite.godyato.com/image/Asset/Thumbnail_Messenger.jpg" />
+    <meta property="og:image:url" content="https://invite.godyato.com/image/Asset/Thumbnail_Messenger.jpg" />
+    <meta property="og:image:secure_url" content="https://invite.godyato.com/image/Asset/Thumbnail_Messenger.jpg" />
     <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -189,7 +189,7 @@ async function startServer() {
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="${title}" />
     <meta name="twitter:description" content="${description}" />
-    <meta name="twitter:image" content="https://invite.godyato.xyz/image/Asset/Thumbnail_Messenger.jpg" />
+    <meta name="twitter:image" content="https://invite.godyato.com/image/Asset/Thumbnail_Messenger.jpg" />
   </head>
   <body>
     <div id="root"></div>

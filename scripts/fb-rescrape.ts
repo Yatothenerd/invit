@@ -13,7 +13,7 @@ import { createClient } from "@supabase/supabase-js";
 const SUPABASE_URL = "https://toqcfxmppbuciuapupct.supabase.co";
 const SUPABASE_SERVICE_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvcWNmeG1wcGJ1Y2l1YXB1cGN0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjQ1MjMzOSwiZXhwIjoyMDg4MDI4MzM5fQ.xiXlCLWTwPKkZS_-sbb8zGBop_uqNt5rsmR7yxnLRuA";
-const BASE_URL = "https://invite.godyato.xyz";
+const BASE_URL = "https://invite.godyato.com";
 
 const FB_GRAPH = "https://graph.facebook.com/v19.0/";
 
