@@ -35,10 +35,16 @@ export const FormalInvitationSection: React.FC = () => {
       >
         <motion.h3
           variants={item}
-          className="font-serif text-3xl gold-gradient-text mb-10"
+          className="font-serif text-3xl gold-gradient-text mb-4"
         >
           អាវាហវិវាហមង្គល
         </motion.h3>
+                <motion.h5
+          variants={item}
+          className="font-serif text-2xl gold-gradient-text mb-10"
+        >
+           (អាពាហ៍ពិពាហ៍មង្គល)
+        </motion.h5>
         
         <motion.div variants={item} className="grid grid-cols-2 gap-4 mb-12">
           <div className="text-center">
