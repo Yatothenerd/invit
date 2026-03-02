@@ -171,7 +171,7 @@ async function startServer() {
     <title>${title}</title>
 
     <!-- Social sharing / thumbnail -->
-    <meta property="fb:app_id" content="911892381556089" />
+    <meta property="fb:app_id" content="911235211757777" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://invite.godyato.xyz/" />
     <meta property="og:title" content="${title}" />
