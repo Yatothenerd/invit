@@ -1,6 +1,52 @@
 import React, { useEffect, useState } from "react";
 import { Guest } from "../../types";
 
+const TelegramIcon: React.FC<{ size?: number }> = ({ size = 14 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <circle cx="12" cy="12" r="11" fill="#0ea5e9" />
+    <path
+      d="M17.5 7L10.5 10.1L8 9.25L7.25 9.55L9.1 11.1L8.5 14.5L9.55 13.65L11.1 12.4L14.75 14.75L17.5 7Z"
+      fill="white"
+    />
+  </svg>
+);
+
+const MessengerIcon: React.FC<{ size?: number }> = ({ size = 14 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <defs>
+      <linearGradient
+        id="messengerGradient"
+        x1="4"
+        y1="4"
+        x2="20"
+        y2="20"
+        gradientUnits="userSpaceOnUse"
+      >
+        <stop offset="0%" stopColor="#00C6FF" />
+        <stop offset="50%" stopColor="#0072FF" />
+        <stop offset="100%" stopColor="#FF5EBA" />
+      </linearGradient>
+    </defs>
+    <circle cx="12" cy="12" r="11" fill="url(#messengerGradient)" />
+    <path
+      d="M7.5 15.5L10.2 11.7L13 13.5L16.2 9.5L13.3 10.9L11 9.5L7.5 15.5Z"
+      fill="white"
+    />
+  </svg>
+);
+
 const AdminPage = () => {
   const [guests, setGuests] = useState<Guest[]>([]);
   const [codes, setCodes] = useState<Record<string, number>>({});
@@ -60,8 +106,18 @@ const AdminPage = () => {
     return `${origin}/${guest.code}`;
   };
 
+  // Use production domain for links that will be shared externally
+  const buildGuestShareLink = (guest: Guest): string | null => {
+    if (!guest.code) return null;
+    const origin = window.location.origin;
+    const base = origin.includes("localhost:3000")
+      ? "https://invite.godyato.com"
+      : origin;
+    return `${base}/${guest.code}`;
+  };
+
   const handleCopyLink = (guest: Guest) => {
-    const url = buildGuestLink(guest);
+    const url = buildGuestShareLink(guest);
     if (!url) return;
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -86,7 +142,7 @@ const AdminPage = () => {
   };
 
   const handleShareTelegram = (guest: Guest) => {
-    const url = buildGuestLink(guest);
+    const url = buildGuestShareLink(guest);
     if (!url) return;
 
     const text = "You're invited to our wedding!";
@@ -97,15 +153,31 @@ const AdminPage = () => {
   };
 
   const handleShareMessenger = (guest: Guest) => {
-    const url = buildGuestLink(guest);
+    const url = buildGuestShareLink(guest);
     if (!url) return;
 
     const appId = "911235211757777";
     const redirectUri = window.location.origin;
-    const messengerUrl = `https://www.facebook.com/dialog/send?link=${encodeURIComponent(
+
+    // Deep link to Messenger app (mobile devices)
+    const messengerAppUrl = `fb-messenger://share?link=${encodeURIComponent(
+      url
+    )}&app_id=${encodeURIComponent(appId)}`;
+
+    // Web fallback if the app cannot be opened
+    const messengerWebUrl = `https://www.facebook.com/dialog/send?link=${encodeURIComponent(
       url
     )}&app_id=${encodeURIComponent(appId)}&redirect_uri=${encodeURIComponent(redirectUri)}`;
-    window.open(messengerUrl, "_blank");
+
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      // On mobile, try to open the Messenger app via deep link
+      window.location.href = messengerAppUrl;
+    } else {
+      // On desktop, keep using the web dialog
+      window.open(messengerWebUrl, "_blank");
+    }
   };
 
   const handleStartEdit = (guest: Guest) => {
@@ -463,32 +535,40 @@ const AdminPage = () => {
                         <button
                           type="button"
                           onClick={() => handleShareTelegram(guest)}
+                          aria-label="Share via Telegram"
                           style={{
-                            padding: "0.25rem 0.6rem",
+                            padding: "0.25rem 0.5rem",
                             fontSize: "0.8rem",
                             borderRadius: 9999,
                             border: "1px solid #0ea5e9",
                             backgroundColor: "#e0f2fe",
                             color: "#0369a1",
                             cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                           }}
                         >
-                          Telegram
+                          <TelegramIcon size={14} />
                         </button>
                         <button
                           type="button"
                           onClick={() => handleShareMessenger(guest)}
+                          aria-label="Share via Messenger"
                           style={{
-                            padding: "0.25rem 0.6rem",
+                            padding: "0.25rem 0.5rem",
                             fontSize: "0.8rem",
                             borderRadius: 9999,
                             border: "1px solid #10b981",
                             backgroundColor: "#ecfdf3",
                             color: "#047857",
                             cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                           }}
                         >
-                          Messenger
+                          <MessengerIcon size={14} />
                         </button>
                       </>
                     )}
