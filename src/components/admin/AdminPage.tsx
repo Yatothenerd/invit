@@ -64,6 +64,7 @@ const AdminPage = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newGuestName, setNewGuestName] = useState("");
   const [adding, setAdding] = useState(false);
+  const [expandedActionsId, setExpandedActionsId] = useState<number | null>(null);
 
   const fetchGuests = async () => {
     try {
@@ -181,6 +182,7 @@ const AdminPage = () => {
   };
 
   const handleStartEdit = (guest: Guest) => {
+    setExpandedActionsId(null);
     setEditingId(guest.id ?? null);
     setEditName(renderGuestName(guest));
     setEditCode(guest.code || "");
@@ -391,7 +393,7 @@ const AdminPage = () => {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "48px 1fr 120px auto",
+              gridTemplateColumns: "40px minmax(0, 1.4fr) auto",
               padding: "0.5rem 0.75rem",
               backgroundColor: "#f9fafb",
               fontSize: "0.8rem",
@@ -402,7 +404,6 @@ const AdminPage = () => {
           >
             <span>#</span>
             <span>Name</span>
-            <span>Code</span>
             <span>Actions</span>
           </div>
           {filteredGuests.length === 0 ? (
@@ -411,13 +412,15 @@ const AdminPage = () => {
             </p>
           ) : (
             filteredGuests.map((guest, index) => {
+              const rowKey = guest.id ?? index;
               const isEditing = editingId === guest.id;
+              const isExpanded = expandedActionsId === rowKey;
               return (
                 <div
-                  key={guest.id ?? index}
+                  key={rowKey}
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "48px 1fr 120px auto",
+                    gridTemplateColumns: "40px minmax(0, 1.4fr) auto",
                     padding: "0.5rem 0.75rem",
                     borderTop: "1px solid #f3f4f6",
                     fontSize: "0.9rem",
@@ -432,7 +435,7 @@ const AdminPage = () => {
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
                       style={{
-                        padding: "0.25rem 0.5rem",
+                        padding: "0.15rem 0.4rem",
                         borderRadius: 4,
                         border: "1px solid #d1d5db",
                         fontSize: "0.85rem",
@@ -440,14 +443,26 @@ const AdminPage = () => {
                       }}
                     />
                   ) : (
-                    <span>{renderGuestName(guest)}</span>
+                    <span
+                      style={{
+                        paddingRight: "0.25rem",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {renderGuestName(guest)}
+                    </span>
                   )}
-
-                  <span style={{ color: "#6b7280", fontFamily: "monospace", fontSize: "0.8rem" }}>
-                    {guest.code || "—"}
-                  </span>
-
-                  <span style={{ textAlign: "right", display: "flex", gap: "0.35rem", justifyContent: "flex-end", flexWrap: "wrap" }}>
+                  <span
+                    style={{
+                      textAlign: "right",
+                      display: "flex",
+                      gap: "0.35rem",
+                      justifyContent: "flex-end",
+                      flexWrap: "wrap",
+                    }}
+                  >
                     {isEditing ? (
                       <>
                         <button
@@ -485,53 +500,57 @@ const AdminPage = () => {
                       </>
                     ) : (
                       <>
-                        <button
-                          type="button"
-                          onClick={() => handleStartEdit(guest)}
-                          style={{
-                            padding: "0.25rem 0.6rem",
-                            fontSize: "0.8rem",
-                            borderRadius: 9999,
-                            border: "1px solid #3b82f6",
-                            backgroundColor: "#3b82f6",
-                            color: "#fff",
-                            cursor: "pointer",
-                          }}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const url = buildGuestLink(guest);
-                            if (!url) return;
-                            window.open(url, "_blank");
-                          }}
-                          style={{
-                            padding: "0.25rem 0.6rem",
-                            fontSize: "0.8rem",
-                            borderRadius: 9999,
-                            border: "1px solid #d1d5db",
-                            backgroundColor: "#ffffff",
-                            cursor: "pointer",
-                          }}
-                        >
-                          Open
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleCopyLink(guest)}
-                          style={{
-                            padding: "0.25rem 0.6rem",
-                            fontSize: "0.8rem",
-                            borderRadius: 9999,
-                            border: "1px solid #d1d5db",
-                            backgroundColor: "#f9fafb",
-                            cursor: "pointer",
-                          }}
-                        >
-                          Copy
-                        </button>
+                        {isExpanded && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleStartEdit(guest)}
+                              style={{
+                                padding: "0.25rem 0.6rem",
+                                fontSize: "0.8rem",
+                                borderRadius: 9999,
+                                border: "1px solid #3b82f6",
+                                backgroundColor: "#3b82f6",
+                                color: "#fff",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const url = buildGuestLink(guest);
+                                if (!url) return;
+                                window.open(url, "_blank");
+                              }}
+                              style={{
+                                padding: "0.25rem 0.6rem",
+                                fontSize: "0.8rem",
+                                borderRadius: 9999,
+                                border: "1px solid #d1d5db",
+                                backgroundColor: "#ffffff",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Open
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleCopyLink(guest)}
+                              style={{
+                                padding: "0.25rem 0.6rem",
+                                fontSize: "0.8rem",
+                                borderRadius: 9999,
+                                border: "1px solid #d1d5db",
+                                backgroundColor: "#f9fafb",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Copy
+                            </button>
+                          </>
+                        )}
                         <button
                           type="button"
                           onClick={() => handleShareTelegram(guest)}
@@ -569,6 +588,27 @@ const AdminPage = () => {
                           }}
                         >
                           <MessengerIcon size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setExpandedActionsId(isExpanded ? null : rowKey)
+                          }
+                          aria-label="More actions"
+                          style={{
+                            padding: "0.25rem 0.5rem",
+                            fontSize: "0.9rem",
+                            borderRadius: 9999,
+                            border: "1px solid #d1d5db",
+                            backgroundColor: "#f3f4f6",
+                            color: "#4b5563",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          ⋯
                         </button>
                       </>
                     )}
