@@ -85,6 +85,29 @@ const AdminPage = () => {
     }
   };
 
+  const handleShareTelegram = (guest: Guest) => {
+    const url = buildGuestLink(guest);
+    if (!url) return;
+
+    const text = "You're invited to our wedding!";
+    const tgUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(
+      text
+    )}`;
+    window.open(tgUrl, "_blank");
+  };
+
+  const handleShareMessenger = (guest: Guest) => {
+    const url = buildGuestLink(guest);
+    if (!url) return;
+
+    const appId = "911235211757777";
+    const redirectUri = window.location.origin;
+    const messengerUrl = `https://www.facebook.com/dialog/send?link=${encodeURIComponent(
+      url
+    )}&app_id=${encodeURIComponent(appId)}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+    window.open(messengerUrl, "_blank");
+  };
+
   const handleStartEdit = (guest: Guest) => {
     setEditingId(guest.id ?? null);
     setEditName(renderGuestName(guest));
@@ -436,6 +459,36 @@ const AdminPage = () => {
                           }}
                         >
                           Copy
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleShareTelegram(guest)}
+                          style={{
+                            padding: "0.25rem 0.6rem",
+                            fontSize: "0.8rem",
+                            borderRadius: 9999,
+                            border: "1px solid #0ea5e9",
+                            backgroundColor: "#e0f2fe",
+                            color: "#0369a1",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Telegram
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleShareMessenger(guest)}
+                          style={{
+                            padding: "0.25rem 0.6rem",
+                            fontSize: "0.8rem",
+                            borderRadius: 9999,
+                            border: "1px solid #10b981",
+                            backgroundColor: "#ecfdf3",
+                            color: "#047857",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Messenger
                         </button>
                       </>
                     )}

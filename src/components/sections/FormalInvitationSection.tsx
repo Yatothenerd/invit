@@ -60,7 +60,7 @@ export const FormalInvitationSection: React.FC = () => {
         </motion.div>
 
         <motion.div variants={item} className="mb-12 px-4">
-          <h4 className="font-koulen text-xl text-wedding-main mb-4">យើងក្នុងមានកិត្តិយសសូមគោរពអញ្ជើញ</h4>
+          <h4 className="font-koulen text-xl text-wedding-main mb-4">យើងខ្ញុំមានកិត្តិយសសូមគោរពអញ្ជើញ</h4>
           <p className="font-sans text-[16px] leading-relaxed text-wedding-brown opacity-80">
             ឯកឧត្ដម លោកជំទាវ លោកអ្នកឧកញ៉ា អ្នកឧកញ៉ា ឧកញ៉ា លោក លោកស្រី អ្នកនាង កញ្ញា
             អញ្ជើញចូលរួមជាអធិបតី និងជាសាក្សីក្នុងពិធីសិរីសួស្តី ជ័យមង្គលវិវាហមង្គល ភរិយាស្វាមី
