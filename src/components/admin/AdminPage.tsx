@@ -65,6 +65,7 @@ const AdminPage = () => {
   const [newGuestName, setNewGuestName] = useState("");
   const [adding, setAdding] = useState(false);
   const [expandedActionsId, setExpandedActionsId] = useState<number | null>(null);
+  const [isCompactActions, setIsCompactActions] = useState(false);
 
   const fetchGuests = async () => {
     try {
@@ -90,6 +91,27 @@ const AdminPage = () => {
 
   useEffect(() => {
     fetchGuests();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const mediaQuery = window.matchMedia("(max-width: 640px)");
+
+    const updateCompact = () => {
+      setIsCompactActions(mediaQuery.matches);
+    };
+
+    updateCompact();
+
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", updateCompact);
+      return () => mediaQuery.removeEventListener("change", updateCompact);
+    } else {
+      // Fallback for older browsers
+      mediaQuery.addListener(updateCompact);
+      return () => mediaQuery.removeListener(updateCompact);
+    }
   }, []);
 
   const renderGuestName = (guest: Guest) => {
@@ -415,6 +437,7 @@ const AdminPage = () => {
               const rowKey = guest.id ?? index;
               const isEditing = editingId === guest.id;
               const isExpanded = expandedActionsId === rowKey;
+              const isCompact = isCompactActions;
               return (
                 <div
                   key={rowKey}
@@ -500,7 +523,122 @@ const AdminPage = () => {
                       </>
                     ) : (
                       <>
-                        {isExpanded && (
+                        {isCompact ? (
+                          <>
+                            {isExpanded && (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => handleStartEdit(guest)}
+                                  style={{
+                                    padding: "0.25rem 0.6rem",
+                                    fontSize: "0.8rem",
+                                    borderRadius: 9999,
+                                    border: "1px solid #3b82f6",
+                                    backgroundColor: "#3b82f6",
+                                    color: "#fff",
+                                    cursor: "pointer",
+                                  }}
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const url = buildGuestLink(guest);
+                                    if (!url) return;
+                                    window.open(url, "_blank");
+                                  }}
+                                  style={{
+                                    padding: "0.25rem 0.6rem",
+                                    fontSize: "0.8rem",
+                                    borderRadius: 9999,
+                                    border: "1px solid #d1d5db",
+                                    backgroundColor: "#ffffff",
+                                    cursor: "pointer",
+                                  }}
+                                >
+                                  Open
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleCopyLink(guest)}
+                                  style={{
+                                    padding: "0.25rem 0.6rem",
+                                    fontSize: "0.8rem",
+                                    borderRadius: 9999,
+                                    border: "1px solid #d1d5db",
+                                    backgroundColor: "#f9fafb",
+                                    cursor: "pointer",
+                                  }}
+                                >
+                                  Copy
+                                </button>
+                              </>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleShareTelegram(guest)}
+                              aria-label="Share via Telegram"
+                              style={{
+                                padding: "0.25rem 0.5rem",
+                                fontSize: "0.8rem",
+                                borderRadius: 9999,
+                                border: "1px solid #0ea5e9",
+                                backgroundColor: "#e0f2fe",
+                                color: "#0369a1",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <TelegramIcon size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleShareMessenger(guest)}
+                              aria-label="Share via Messenger"
+                              style={{
+                                padding: "0.25rem 0.5rem",
+                                fontSize: "0.8rem",
+                                borderRadius: 9999,
+                                border: "1px solid #10b981",
+                                backgroundColor: "#ecfdf3",
+                                color: "#047857",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <MessengerIcon size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setExpandedActionsId(
+                                  isExpanded ? null : rowKey
+                                )
+                              }
+                              aria-label="More actions"
+                              style={{
+                                padding: "0.25rem 0.5rem",
+                                fontSize: "0.9rem",
+                                borderRadius: 9999,
+                                border: "1px solid #d1d5db",
+                                backgroundColor: "#f3f4f6",
+                                color: "#4b5563",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              ⋯
+                            </button>
+                          </>
+                        ) : (
                           <>
                             <button
                               type="button"
@@ -549,67 +687,46 @@ const AdminPage = () => {
                             >
                               Copy
                             </button>
+                            <button
+                              type="button"
+                              onClick={() => handleShareTelegram(guest)}
+                              aria-label="Share via Telegram"
+                              style={{
+                                padding: "0.25rem 0.5rem",
+                                fontSize: "0.8rem",
+                                borderRadius: 9999,
+                                border: "1px solid #0ea5e9",
+                                backgroundColor: "#e0f2fe",
+                                color: "#0369a1",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <TelegramIcon size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleShareMessenger(guest)}
+                              aria-label="Share via Messenger"
+                              style={{
+                                padding: "0.25rem 0.5rem",
+                                fontSize: "0.8rem",
+                                borderRadius: 9999,
+                                border: "1px solid #10b981",
+                                backgroundColor: "#ecfdf3",
+                                color: "#047857",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <MessengerIcon size={14} />
+                            </button>
                           </>
                         )}
-                        <button
-                          type="button"
-                          onClick={() => handleShareTelegram(guest)}
-                          aria-label="Share via Telegram"
-                          style={{
-                            padding: "0.25rem 0.5rem",
-                            fontSize: "0.8rem",
-                            borderRadius: 9999,
-                            border: "1px solid #0ea5e9",
-                            backgroundColor: "#e0f2fe",
-                            color: "#0369a1",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <TelegramIcon size={14} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleShareMessenger(guest)}
-                          aria-label="Share via Messenger"
-                          style={{
-                            padding: "0.25rem 0.5rem",
-                            fontSize: "0.8rem",
-                            borderRadius: 9999,
-                            border: "1px solid #10b981",
-                            backgroundColor: "#ecfdf3",
-                            color: "#047857",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <MessengerIcon size={14} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setExpandedActionsId(isExpanded ? null : rowKey)
-                          }
-                          aria-label="More actions"
-                          style={{
-                            padding: "0.25rem 0.5rem",
-                            fontSize: "0.9rem",
-                            borderRadius: 9999,
-                            border: "1px solid #d1d5db",
-                            backgroundColor: "#f3f4f6",
-                            color: "#4b5563",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          ⋯
-                        </button>
                       </>
                     )}
                   </span>
