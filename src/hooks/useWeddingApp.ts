@@ -109,6 +109,15 @@ export const useWeddingApp = () => {
     audio.volume = 0.5;
     audioRef.current = audio;
 
+    // Try to autoplay on normal pages; if the browser blocks it,
+    // music will start later when the user interacts (e.g. Open Invitation button).
+    audio
+      .play()
+      .then(() => setIsPlaying(true))
+      .catch(() => {
+        // Autoplay blocked – wait for explicit user interaction.
+      });
+
     return () => {
       if (audioRef.current) {
         audioRef.current.pause();
