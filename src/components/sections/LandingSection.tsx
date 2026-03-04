@@ -4,10 +4,11 @@ import { CornerDecor } from '../common/Common';
 
 interface LandingSectionProps {
   guestName: string;
+  isLoadingGuest?: boolean;
   scrollToContent: () => void;
 }
 
-export const LandingSection: React.FC<LandingSectionProps> = ({ guestName, scrollToContent }) => {
+export const LandingSection: React.FC<LandingSectionProps> = ({ guestName, isLoadingGuest, scrollToContent }) => {
   const guestNameRef = useRef<HTMLHeadingElement | null>(null);
   const [isWrapped, setIsWrapped] = useState(false);
 
@@ -73,7 +74,11 @@ export const LandingSection: React.FC<LandingSectionProps> = ({ guestName, scrol
                 isWrapped ? 'text-xl' : 'text-2xl'
               }`}
             >
-              {guestName}
+              {isLoadingGuest ? (
+                <span className="inline-block w-32 h-6 bg-wedding-gold/20 rounded animate-pulse" />
+              ) : (
+                guestName
+              )}
             </h2>
           </div>
           <div className="h-[1px] w-12 bg-wedding-gold/30 mx-auto mb-2"></div>

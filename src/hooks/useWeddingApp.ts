@@ -10,7 +10,8 @@ export const useWeddingApp = () => {
   const [name, setName] = useState('');
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [guestName, setGuestName] = useState('Guest');
+  const [guestName, setGuestName] = useState('');
+  const [isLoadingGuest, setIsLoadingGuest] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [guests, setGuests] = useState<Guest[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -34,24 +35,38 @@ export const useWeddingApp = () => {
     if (effectiveCode) {
       const loadGuestFromCode = async () => {
         try {
-          const res = await fetch('/api/guests');
+          // Fast path: single-guest lookup by code
+          const res = await fetch(`/api/guests?code=${encodeURIComponent(effectiveCode)}`);
           const data = await res.json();
-          const guests: Guest[] = data.guests || [];
-          const codes: Record<string, number> = data.codes || {};
-          const idx = codes[effectiveCode];
-          if (typeof idx === 'number' && guests[idx]) {
-            const entry = guests[idx];
-            if (entry.name) {
-              setGuestName(entry.name);
+
+          if (data.name) {
+            // New API response: { name: "..." }
+            setGuestName(data.name);
+          } else if (data.guests && data.codes) {
+            // Fallback: old API returned full list { guests: [...], codes: {...} }
+            const idx = data.codes[effectiveCode];
+            if (typeof idx === 'number' && data.guests[idx]?.name) {
+              setGuestName(data.guests[idx].name);
+            } else {
+              setGuestName('Guest');
             }
+          } else {
+            setGuestName('Guest');
           }
         } catch (err) {
           console.error('Failed to resolve guest from code', err);
+          setGuestName('Guest');
+        } finally {
+          setIsLoadingGuest(false);
         }
       };
       loadGuestFromCode();
     } else if (guestParam) {
       setGuestName(guestParam);
+      setIsLoadingGuest(false);
+    } else {
+      setGuestName('Guest');
+      setIsLoadingGuest(false);
     }
     if (params.get('admin') === 'true') {
       setIsAdmin(true);
@@ -109,13 +124,31 @@ export const useWeddingApp = () => {
     audio.volume = 0.5;
     audioRef.current = audio;
 
-    // Try to autoplay on normal pages; if the browser blocks it,
-    // music will start later when the user interacts (e.g. Open Invitation button).
+    // Try to autoplay; if the browser blocks it, start on first user interaction.
     audio
       .play()
       .then(() => setIsPlaying(true))
       .catch(() => {
-        // Autoplay blocked – wait for explicit user interaction.
+        // Autoplay blocked – start music on first user interaction.
+        const startOnInteraction = () => {
+          if (audioRef.current && audioRef.current.paused) {
+            audioRef.current
+              .play()
+              .then(() => setIsPlaying(true))
+              .catch(() => {});
+          }
+          cleanup();
+        };
+        const cleanup = () => {
+          document.removeEventListener('click', startOnInteraction);
+          document.removeEventListener('touchstart', startOnInteraction);
+          document.removeEventListener('scroll', startOnInteraction);
+          document.removeEventListener('keydown', startOnInteraction);
+        };
+        document.addEventListener('click', startOnInteraction, { once: true });
+        document.addEventListener('touchstart', startOnInteraction, { once: true });
+        document.addEventListener('scroll', startOnInteraction, { once: true });
+        document.addEventListener('keydown', startOnInteraction, { once: true });
       });
 
     return () => {
@@ -210,6 +243,7 @@ export const useWeddingApp = () => {
     setMessage,
     isSubmitting,
     guestName,
+    isLoadingGuest,
     isAdmin,
     setIsAdmin,
     guests,
