@@ -203,13 +203,14 @@ function AppRoutes(props: AppContentProps) {
           }
         />
       </Routes>
-      <FloatingControls 
-        isPlaying={isPlaying}
-        togglePlay={togglePlay}
-        showScrollTop={showScrollTop}
-        scrollToTop={scrollToTop}
-        isAdminLayout={isAdminRoute}
-      />
+      {!isAdminRoute && (
+        <FloatingControls 
+          isPlaying={isPlaying}
+          togglePlay={togglePlay}
+          showScrollTop={showScrollTop}
+          scrollToTop={scrollToTop}
+        />
+      )}
     </>
   );
 }

@@ -116,7 +116,7 @@ export const FormalInvitationSection: React.FC = () => {
           <p className="font-sans text-[14px] leading-relaxed text-wedding-brown opacity-70 mt-6">
             រៀបចំពិធីនៅអាហារដ្ធាន សំណាង នៃសង្កាត់ប៉ោយប៉ែត ក្រុងប៉ោយប៉ែត ខេត្តបន្ទាយមានជ័យ
           </p>
-          <p className="font-sans text-[14px] leading-relaxed text-wedding-brown opacity-80 mt-2">
+          <p className="font-sans text-[14px] leading-relaxed text-wedding-brown/50 opacity-80 mt-2">
             The ceremony and reception will be held at Somnang Restaurant,
             Poipet City, Banteay Meanchey Province.
           </p>

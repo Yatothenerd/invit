@@ -94,48 +94,26 @@ export const useWeddingApp = () => {
   }, []);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    // Do not load or play music on the admin page
+    const isAdminRoute = window.location.pathname.startsWith('/admin');
+    if (isAdminRoute) {
+      setIsPlaying(false);
+      return;
+    }
+
     const audio = new Audio('/audio/bg-music.mp3');
     audio.loop = true;
-    // Only fetch full audio when needed; avoid large upfront download
     audio.preload = 'metadata';
     audio.volume = 0.5;
     audioRef.current = audio;
-
-    // Try to autoplay on initial load; some browsers may block this
-    // until the first user interaction, in which case we fall back
-    // to the click/touch handlers below.
-    audio
-      .play()
-      .then(() => setIsPlaying(true))
-      .catch(() => {
-        // Autoplay blocked – will start on first interaction
-      });
-
-    const playAudio = () => {
-      if (audioRef.current && audioRef.current.paused) {
-        audioRef.current
-          .play()
-          .then(() => setIsPlaying(true))
-          .catch(() => {});
-      }
-    };
-
-    const handleFirstInteraction = () => {
-      playAudio();
-      document.removeEventListener('click', handleFirstInteraction);
-      document.removeEventListener('touchstart', handleFirstInteraction);
-    };
-
-    document.addEventListener('click', handleFirstInteraction);
-    document.addEventListener('touchstart', handleFirstInteraction);
 
     return () => {
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
       }
-      document.removeEventListener('click', handleFirstInteraction);
-      document.removeEventListener('touchstart', handleFirstInteraction);
       setIsPlaying(false);
     };
   }, []);
