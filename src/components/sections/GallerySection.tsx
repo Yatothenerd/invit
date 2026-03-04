@@ -10,6 +10,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ setSelectedImage
   return (
     <Section className="bg-wedding-cream/50" ornate>
       <h3 className="section-title gold-gradient-text">រូបភាពអនុស្សាវរីយ៍</h3>
+      <p className="mt-2 text-sm font-sans text-wedding-brown/80 text-center uppercase tracking-wide">Memories Gallery</p>
       
       <motion.div
         className="mt-8 space-y-4"

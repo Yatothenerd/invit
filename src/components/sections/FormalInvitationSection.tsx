@@ -24,6 +24,13 @@ export const FormalInvitationSection: React.FC = () => {
     visible: { opacity: 1, y: 0 },
   } as const;
 
+  const scrollToMap = () => {
+    const el = document.getElementById('map-section');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <Section className="bg-wedding-cream" ornate>
       <motion.div
@@ -39,23 +46,32 @@ export const FormalInvitationSection: React.FC = () => {
         >
           អាវាហវិវាហមង្គល
         </motion.h3>
-                <motion.h5
+        <motion.h5
           variants={item}
-          className="font-serif text-2xl gold-gradient-text mb-10"
+          className="font-serif text-2xl gold-gradient-text mb-2"
         >
            (អាពាហ៍ពិពាហ៍មង្គល)
         </motion.h5>
-        
+        <motion.p
+          variants={item}
+          className="font-sans text-wedding-gold text-l tracking-[0.25px] mb-10"
+        >
+          WEDDING CEREMONY INVITATION
+        </motion.p>
+          {/* <Flourish className="mx-auto mb-10 opacity-30" /> */}
         <motion.div variants={item} className="grid grid-cols-2 gap-4 mb-12">
           <div className="text-center">
-            <p className="font-sans text-[16px] text-wedding-brown uppercase text-bold  mb-2">មាតាបិតាខាងកូនប្រុស</p>
+            <p className="font-sans text-[16px] text-wedding-gold uppercase text-bold  mb-2">មាតាបិតាខាងកូនប្រុស</p>
+
             <p className="font-koulen text-m text-wedding-main ">លោក​ គង់ សុផានី</p>
             <p className="font-koulen text-m text-wedding-main ">លោកស្រី យស់ សារ៉ាន</p>
+              <p className="font-sans text-[12px] text-wedding-brown/70 tracking-wide uppercase mb-2">Parents of the Groom</p>
           </div>
           <div className="text-center">
-            <p className="font-sans text-[16px] text-wedding-brown uppercase text-bold mb-2">មាតាបិតាខាងកូនស្រី</p>
+            <p className="font-sans text-[16px] text-wedding-gold uppercase text-bold mb-2">មាតាបិតាខាងកូនស្រី</p>
             <p className="font-koulen text-m text-wedding-main ">លោក​ ហ៊ុន ហន</p>
             <p className="font-koulen text-m text-wedding-main">លោកស្រី លន់ ចន្ថា (មុំ)</p>
+             <p className="font-sans text-[12px] text-wedding-brown/70 tracking-wide uppercase mb-2">Parents of the Bride</p>
           </div>
         </motion.div>
 
@@ -66,33 +82,53 @@ export const FormalInvitationSection: React.FC = () => {
             អញ្ជើញចូលរួមជាអធិបតី និងជាសាក្សីក្នុងពិធីសិរីសួស្តី ជ័យមង្គលវិវាហមង្គល ភរិយាស្វាមី
             ដែលរៀបចំពិធីតាមគន្លងប្រពៃណីខ្មែរ ក្នុងវល្លិ៍មង្គល សុភមង្គល របស់កូនប្រុស-កូនស្រី របស់យើងខ្ញុំ
           </p>
+          <p className="font-sans text-[14px] leading-relaxed text-wedding-brown/50 opacity-80 mt-4">
+            We respectfully invite you to grace and witness the joyful and auspicious
+            traditional Khmer wedding ceremony of our beloved son and daughter, and to
+            bless them as they begin their new life together.
+          </p>
         </motion.div>
 
         <motion.div variants={item} className="grid grid-cols-3 gap-1 items-center mb-12">
           <div className="text-center col-start-1">
-            <p className="font-sans text-[16px] text-wedding-brown uppercase text-bold mb-2">កូនប្រុសនាម</p>
+            <p className="font-sans text-[16px] text-wedding-gold uppercase text-bold mb-2">កូនប្រុសនាម</p>
             <p className="font-koulen text-xl text-wedding-main">ស៊ុន សុក្រឹតវីរៈ</p>
+            <p className="font-sans text-[12px] text-wedding-brown/70 tracking-wide uppercase mt-1">Groom</p>
           </div>
           <div className="flex justify-center col-start-2">
             <Heart className="w-6 h-6 text-wedding-tan/40" />
           </div>
           <div className="text-center col-start-3">
-            <p className="font-sans text-[16px] text-wedding-brown uppercase text-bold mb-2">កូនស្រីនាម</p>
+            <p className="font-sans text-[16px] text-wedding-gold uppercase text-bold mb-2">កូនស្រីនាម</p>
             <p className="font-koulen text-xl text-wedding-main">ផៃ ណាវ៉េត</p>
+            <p className="font-sans text-[12px] text-wedding-brown/70 tracking-wide uppercase mt-1">Bride</p>
           </div>
         </motion.div>
 
-        <motion.div variants={item} className="px-4 mt-8">
+        <motion.div variants={item} className="px-4 mt-4">
           <div className="inline-block border-y border-wedding-gold/30 py-4 px-8">
-            <p className="font-sans text-[14px] leading-relaxed text-wedding-brown opacity-70 mt-6">
+            <p className="font-sans text-[14px] leading-relaxed text-wedding-brown opacity-70 mt-1">
               ថ្ងៃ  ១២រោច ខែផល្គុន ឆ្នាំម្សាញ់ សប្តស័ក ពុទ្ធសករាជ ២៥៦៩ ត្រូវនឹង
             </p>
             <p className="font-koulen text-xl text-wedding-main mb-1">ថ្ងៃអាទិត្យ ទី១៥ ខែមីនា ឆ្នាំ២០២៦</p>
             <p className="font-sans text-xs text-wedding-brown uppercase tracking-widest opacity-60">Sunday, March 15, 2026</p>
           </div>
           <p className="font-sans text-[14px] leading-relaxed text-wedding-brown opacity-70 mt-6">
-            រៀបចំពិធីនៅអាហារដ្ធាន សំណាង នៃសង្កាត់ប៉ោយប៉ែត ក្រុងប៉ោយប៉ែត ខេត្តបន្ទាយមានជ័យ !
+            រៀបចំពិធីនៅអាហារដ្ធាន សំណាង នៃសង្កាត់ប៉ោយប៉ែត ក្រុងប៉ោយប៉ែត ខេត្តបន្ទាយមានជ័យ
           </p>
+          <p className="font-sans text-[14px] leading-relaxed text-wedding-brown opacity-80 mt-2">
+            The ceremony and reception will be held at Somnang Restaurant,
+            Poipet City, Banteay Meanchey Province.
+          </p>
+          <div className="mt-6 flex justify-center">
+            <button
+              type="button"
+              onClick={scrollToMap}
+              className="inline-flex items-center justify-center px-6 py-3 border border-wedding-gold text-wedding-gold rounded-full font-sans text-xs tracking-[0.25em] uppercase hover:bg-wedding-gold/10 transition-all"
+            >
+              MAP BELOW
+            </button>
+          </div>
         </motion.div>
         
         <motion.div variants={item}>

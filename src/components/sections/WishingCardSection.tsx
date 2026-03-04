@@ -21,6 +21,7 @@ export const WishingCardSection: React.FC<WishingCardSectionProps> = ({
     <Section className="bg-wedding-red" ornate>
       <div className="mb-20">
         <h3 className="section-title gold-gradient-text">សៀវភៅជូនពរ</h3>
+        <p className="mt-2 text-sm font-sans text-wedding-gold/80 text-center mb-6 uppercase tracking-wide">Wishing Book</p>
         
         <form onSubmit={handleSubmitWish} className="bg-wedding-red-dark p-8 rounded-sm shadow-xl border border-wedding-gold/20 mb-10 relative card-pattern">
           <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-wedding-red-dark px-4">
@@ -29,23 +30,29 @@ export const WishingCardSection: React.FC<WishingCardSectionProps> = ({
           
           <div className="space-y-5">
             <div>
-              <label className="block text-[14px] font-bold text-wedding-gold uppercase  mb-1.5 font-sans">ឈ្មោះរបស់អ្នក</label>
+              <label className="block text-[14px] font-bold text-wedding-gold uppercase  mb-1.5 font-sans">
+                <span>ឈ្មោះរបស់អ្នក</span>
+                <span className="block text-[11px] normal-case text-wedding-gold/80 mt-0.5">Your Name</span>
+              </label>
               <input 
                 type="text" 
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full px-4 py-3 bg-wedding-red border border-wedding-gold/10 rounded-sm focus:outline-none focus:border-wedding-gold font-sans text-wedding-cream placeholder:text-wedding-cream/30"
-                placeholder="សូមបញ្ចូលឈ្មោះរបស់អ្នក"
+                placeholder="សូមបញ្ចូលឈ្មោះរបស់អ្នក / Please enter your name"
                 required
               />
             </div>
             <div>
-              <label className="block text-[14px] font-bold text-wedding-gold uppercase  mb-1.5 font-sans">សារជូនពរ</label>
+              <label className="block text-[14px] font-bold text-wedding-gold uppercase m5 mb-1.5 font-sans">
+                <span>សារជូនពរ</span>
+                <span className="block text-[11px] normal-case text-wedding-gold/80 mt-0.5">Message / Wishes</span>
+              </label>
               <textarea 
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 className="w-full px-4 py-3 bg-wedding-red border border-wedding-gold/10 rounded-sm focus:outline-none focus:border-wedding-gold min-h-[120px] font-sans text-wedding-cream placeholder:text-wedding-cream/30"
-                placeholder="សូមសរសេរសារជូនពរនៅទីនេះ..."
+                placeholder="សូមសរសេរសារជូនពរនៅទីនេះ... / Please write your wishes here..."
                 required
               />
             </div>
@@ -54,7 +61,7 @@ export const WishingCardSection: React.FC<WishingCardSectionProps> = ({
               disabled={isSubmitting}
               className="w-full py-4 bg-wedding-gold text-wedding-red-dark rounded-sm font-sans  uppercase text-xs shadow-lg hover:bg-wedding-gold/90 transition-all disabled:opacity-50 border border-wedding-gold/30 font-bold"
             >
-              {isSubmitting ? 'កំពុងផ្ញើ...' : 'ផ្ញើសារជូនពរ'}
+              {isSubmitting ? 'កំពុងផ្ញើ... / Sending...' : 'ផ្ញើសារជូនពរ / Send Wishes'}
             </button>
           </div>
         </form>
@@ -75,7 +82,9 @@ export const WishingCardSection: React.FC<WishingCardSectionProps> = ({
             </motion.div>
           ))}
           {wishes.length === 0 && (
-            <p className="text-center text-wedding-gold/40 text-sm italic font-sans">សូមក្លាយជាអ្នកដំបូងដែលផ្ញើសារជូនពរ!</p>
+            <p className="text-center text-wedding-gold/40 text-sm italic font-sans">
+              សូមក្លាយជាអ្នកដំបូងដែលផ្ញើសារជូនពរ! / Be the first to send your wishes!
+            </p>
           )}
         </div>
       </div>

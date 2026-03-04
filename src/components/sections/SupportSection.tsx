@@ -12,10 +12,16 @@ export const SupportSection: React.FC = () => {
   return (
     <Section className="bg-wedding-cream" ornate>
       <div className="text-center">
-        <h5 className="section-title text-wedding-main flex items-center justify-center gap-2">
-          <Heart className="w-5 h-5 fill-wedding-tan/20" /> 
-          Support us building our small family
-          <Heart className="w-5 h-5 fill-wedding-tan/20" />  
+         <h3 className="section-title gold-gradient-text"> ចូលរួមចំណងដៃ</h3>
+        <h5 className="section-title text-wedding-main flex flex-col items-center justify-center gap-1">
+          <span className="flex items-center justify-center gap-2">
+            <Heart className="w-5 h-5 fill-wedding-tan/20" /> 
+            <span>Support us building our small family</span>
+            <Heart className="w-5 h-5 fill-wedding-tan/20" />  
+          </span>
+          {/* <span className="font-koulen text-sm text-wedding-brown/80">
+            ចូលរួមចំណងដៃ
+          </span> */}
         </h5>
         <div className="mt-4 flex items-center justify-center gap-2 text-sm">
           <button

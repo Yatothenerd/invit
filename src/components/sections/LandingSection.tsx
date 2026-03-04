@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { CornerDecor } from '../common/Common';
 
@@ -8,6 +8,28 @@ interface LandingSectionProps {
 }
 
 export const LandingSection: React.FC<LandingSectionProps> = ({ guestName, scrollToContent }) => {
+  const guestNameRef = useRef<HTMLHeadingElement | null>(null);
+  const [isWrapped, setIsWrapped] = useState(false);
+
+  useEffect(() => {
+    const el = guestNameRef.current;
+    if (!el) return;
+
+    const checkWrapped = () => {
+      const style = window.getComputedStyle(el);
+      const lineHeight = parseFloat(style.lineHeight || '0');
+      if (!lineHeight) {
+        setIsWrapped(false);
+        return;
+      }
+      const lines = el.clientHeight / lineHeight;
+      setIsWrapped(lines > 1.2);
+    };
+
+    checkWrapped();
+    window.addEventListener('resize', checkWrapped);
+    return () => window.removeEventListener('resize', checkWrapped);
+  }, [guestName]);
   return (
     <section 
       className="min-h-screen flex flex-col items-center justify-between text-wedding-gold p-8 text-center relative overflow-hidden pt-10 pb-10"
@@ -36,7 +58,8 @@ export const LandingSection: React.FC<LandingSectionProps> = ({ guestName, scrol
         transition={{ delay: 0.4, duration: 1.2, ease: "easeOut" }}
         className="relative z-10 flex flex-col items-center mb-2"
       >
-        <p className="font-sans uppercase text-[16px] text-wedding-landbody mb-2">សូមគោរពអញ្ជើញ</p>
+        <p className="font-sans uppercase text-[16px] text-wedding-landbody mb-1">សូមគោរពអញ្ជើញ</p>
+        <p className="font-sans text-[13px] text-wedding-cream/80 tracking-wide mb-2">We are honored to invite</p>
         <div className="mb-2">
           <div className="relative flex items-center justify-center mb-4 min-h-[80px]">
             <img 
@@ -44,10 +67,18 @@ export const LandingSection: React.FC<LandingSectionProps> = ({ guestName, scrol
               alt="name placeholder" 
               className="absolute w-full max-w-[620px] opacity-60 pointer-events-none" 
             />
-            <h2 className="guest-name font-serif text-2xl text-wedding-white italic relative z-10 px-4">{guestName}</h2>
+            <h2
+              ref={guestNameRef}
+              className={`guest-name font-serif text-wedding-white italic relative z-10 px-4 ${
+                isWrapped ? 'text-xl' : 'text-2xl'
+              }`}
+            >
+              {guestName}
+            </h2>
           </div>
           <div className="h-[1px] w-12 bg-wedding-gold/30 mx-auto mb-2"></div>
-          <p className="font-sans text-[16px] text-wedding-landbody uppercase">ចូលរួមជាអធិបតីក្នុងពិធីមង្គលការរបស់យើងខ្ញុំ</p>
+          <p className="font-sans text-[16px] text-wedding-landbody uppercase mb-1">ចូលរួមជាអធិបតីក្នុងពិធីមង្គលការរបស់យើងខ្ញុំ</p>
+          <p className="font-sans text-[13px] text-wedding-cream/80 tracking-wide">to grace us with your presence at our wedding ceremony</p>
         </div>
 
         <div className="flex flex-col items-center gap-4">
@@ -57,7 +88,8 @@ export const LandingSection: React.FC<LandingSectionProps> = ({ guestName, scrol
             onClick={scrollToContent}
             className="text-wedding-landbody animate-bounce font-koulen border-wedding-landbody/30 px-8 py-3 rounded-full text-sm tracking-widest transition-all duration-300"
           >
-           បើកសំបុត្រអញ្ជើញ
+           <span className="block font-koulen">បើកសំបុត្រអញ្ជើញ</span>
+           <span className="block font-sans text-[11px] tracking-[0.25em] uppercase text-wedding-landbody/80">Open Invitation</span>
           </motion.button>
          </div>
       </motion.div>
