@@ -14,7 +14,10 @@ export const Footer: React.FC = () => {
         <p className="font-serif text-4xl gold-gradient-text">សូមអរគុណ</p>
         <p className="font-sans text-sm text-wedding-cream/80 mt-2 tracking-wide uppercase">Thank you</p>
         <p className="text-[14px] opacity-40 mt-4  uppercase font-bold text-wedding-gold font-sans">
-          ស៊ុន សុក្រឹតវីរៈ & ផៃ ណាវ៉េត • ២០២៦ / Sun Sokritvea & Phay Naveth • 2026
+          ស៊ុន សុក្រឹតវីរៈ & ផៃ ណាវ៉េត • ២០២៦
+        </p>
+            <p className="text-[14px] opacity-40 mt-4  uppercase font-bold text-wedding-gold font-sans">
+          Sun Sokritvireak & Phai Naveth • 2026
         </p>
         <div className="mt-8 flex justify-center gap-2">
           <div className="w-1 h-1 rounded-full bg-wedding-gold"></div>
