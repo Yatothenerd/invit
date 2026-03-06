@@ -19,28 +19,50 @@ async function startServer() {
   const PORT = 3000;
 
   app.use(express.json());
+  
+  // Wishes endpoints backed by Supabase "wishes" table
+  app.get("/api/wishes", async (req, res) => {
+    try {
+      const { data, error } = await supabaseServer
+        .from('wishes')
+        .select('id, name, message, created_at')
+        .order('created_at', { ascending: false });
 
-  // Simple in-memory wishes store (no wedding.db)
-  const wishes: { id: number; name: string; message: string; created_at: string }[] = [];
-  let nextWishId = 1;
+      if (error) {
+        console.error("/api/wishes GET error", error);
+        return res.status(500).json({ error: "Failed to fetch wishes" });
+      }
 
-  app.get("/api/wishes", (req, res) => {
-    res.json(wishes.slice().reverse());
+      return res.json(data || []);
+    } catch (err) {
+      console.error("/api/wishes GET exception", err);
+      return res.status(500).json({ error: "Failed to fetch wishes" });
+    }
   });
 
-  app.post("/api/wishes", (req, res) => {
+  app.post("/api/wishes", async (req, res) => {
     const { name, message } = req.body as { name?: string; message?: string };
     if (!name || !message) {
       return res.status(400).json({ error: "Name and message are required" });
     }
-    const wish = {
-      id: nextWishId++,
-      name,
-      message,
-      created_at: new Date().toISOString(),
-    };
-    wishes.push(wish);
-    res.json(wish);
+
+    try {
+      const { data, error } = await supabaseServer
+        .from('wishes')
+        .insert({ name, message })
+        .select('id, name, message, created_at')
+        .single();
+
+      if (error) {
+        console.error("/api/wishes POST error", error);
+        return res.status(500).json({ error: "Failed to save wish" });
+      }
+
+      return res.status(201).json(data);
+    } catch (err) {
+      console.error("/api/wishes POST exception", err);
+      return res.status(500).json({ error: "Failed to save wish" });
+    }
   });
 
   // Endpoint to fetch guest names from Supabase

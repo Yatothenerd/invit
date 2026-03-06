@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Wish, Guest } from '../types';
+import { GALLERY_IMAGES } from '../galleryImages';
 
 const CODE_LENGTH = 6;
 
 export const useWeddingApp = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [wishes, setWishes] = useState<Wish[]>([]);
   const [name, setName] = useState('');
   const [message, setMessage] = useState('');
@@ -127,6 +128,36 @@ export const useWeddingApp = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+    const stopAudio = () => {
+      if (audioRef.current && !audioRef.current.paused) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        setIsPlaying(false);
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        stopAudio();
+      }
+    };
+
+    const handlePageHide = () => {
+      stopAudio();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pagehide', handlePageHide);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pagehide', handlePageHide);
+    };
+  }, []);
+
   const handleSubmitWish = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !message) return;
@@ -177,6 +208,32 @@ export const useWeddingApp = () => {
     }
   };
 
+  const selectedImage =
+    selectedImageIndex !== null ? GALLERY_IMAGES[selectedImageIndex] ?? null : null;
+
+  const setSelectedImage = (img: string | null) => {
+    if (img === null) {
+      setSelectedImageIndex(null);
+      return;
+    }
+    const idx = GALLERY_IMAGES.indexOf(img);
+    setSelectedImageIndex(idx === -1 ? null : idx);
+  };
+
+  const goToNextImage = () => {
+    setSelectedImageIndex((prev) => {
+      if (prev === null) return prev;
+      return (prev + 1) % GALLERY_IMAGES.length;
+    });
+  };
+
+  const goToPrevImage = () => {
+    setSelectedImageIndex((prev) => {
+      if (prev === null) return prev;
+      return (prev - 1 + GALLERY_IMAGES.length) % GALLERY_IMAGES.length;
+    });
+  };
+
   const handleShare = async (imageUrl: string) => {
     if (navigator.share) {
       try {
@@ -203,6 +260,8 @@ export const useWeddingApp = () => {
     showScrollTop,
     selectedImage,
     setSelectedImage,
+    goToNextImage,
+    goToPrevImage,
     wishes,
     name,
     setName,

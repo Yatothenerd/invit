@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Share2 } from 'lucide-react';
+import { X, Share2, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ImageModalProps {
   selectedImage: string | null;
@@ -8,7 +8,21 @@ interface ImageModalProps {
   handleShare: (img: string) => void;
 }
 
-export const ImageModal: React.FC<ImageModalProps> = ({ selectedImage, setSelectedImage, handleShare }) => {
+interface ImageModalProps {
+  selectedImage: string | null;
+  setSelectedImage: (img: string | null) => void;
+  handleShare: (img: string) => void;
+  goToNextImage: () => void;
+  goToPrevImage: () => void;
+}
+
+export const ImageModal: React.FC<ImageModalProps> = ({
+  selectedImage,
+  setSelectedImage,
+  handleShare,
+  goToNextImage,
+  goToPrevImage,
+}) => {
   return (
     <AnimatePresence>
       {selectedImage && (
@@ -25,6 +39,23 @@ export const ImageModal: React.FC<ImageModalProps> = ({ selectedImage, setSelect
           >
             <X className="w-10 h-10" />
           </button>
+
+          {selectedImage && (
+            <>
+              <button
+                className="absolute left-4 md:left-10 text-wedding-cream/80 hover:text-wedding-cream z-10 transition-colors"
+                onClick={(e) => { e.stopPropagation(); goToPrevImage(); }}
+              >
+                <ChevronLeft className="w-10 h-10" />
+              </button>
+              <button
+                className="absolute right-4 md:right-10 text-wedding-cream/80 hover:text-wedding-cream z-10 transition-colors"
+                onClick={(e) => { e.stopPropagation(); goToNextImage(); }}
+              >
+                <ChevronRight className="w-10 h-10" />
+              </button>
+            </>
+          )}
           
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
@@ -36,7 +67,7 @@ export const ImageModal: React.FC<ImageModalProps> = ({ selectedImage, setSelect
             <img 
               src={selectedImage} 
               alt="Full screen" 
-              className="max-w-full max-h-[80vh] object-contain shadow-2xl border-4 border-wedding-gold/20"
+              className="max-w-[100vw] max-h-[90vh] object-contain shadow-2xl border-4 border-wedding-gold/20"
               referrerPolicy="no-referrer"
             />
           </motion.div>

@@ -25,6 +25,8 @@ export default function App() {
     showScrollTop,
     selectedImage,
     setSelectedImage,
+    goToNextImage,
+    goToPrevImage,
     wishes,
     name,
     setName,
@@ -52,6 +54,8 @@ export default function App() {
         showScrollTop={showScrollTop}
         selectedImage={selectedImage}
         setSelectedImage={setSelectedImage}
+        goToNextImage={goToNextImage}
+        goToPrevImage={goToPrevImage}
         wishes={wishes}
         name={name}
         setName={setName}
@@ -80,6 +84,8 @@ type AppContentProps = {
   showScrollTop: boolean;
   selectedImage: string | null;
   setSelectedImage: (img: string | null) => void;
+  goToNextImage: () => void;
+  goToPrevImage: () => void;
   wishes: any[];
   name: string;
   setName: (v: string) => void;
@@ -109,6 +115,8 @@ function AppRoutes(props: AppContentProps) {
     showScrollTop,
     selectedImage,
     setSelectedImage,
+    goToNextImage,
+    goToPrevImage,
     wishes,
     name,
     setName,
@@ -140,6 +148,8 @@ function AppRoutes(props: AppContentProps) {
               showScrollTop={showScrollTop}
               selectedImage={selectedImage}
               setSelectedImage={setSelectedImage}
+              goToNextImage={goToNextImage}
+              goToPrevImage={goToPrevImage}
               wishes={wishes}
               name={name}
               setName={setName}
@@ -180,6 +190,8 @@ function AppRoutes(props: AppContentProps) {
               showScrollTop={showScrollTop}
               selectedImage={selectedImage}
               setSelectedImage={setSelectedImage}
+              goToNextImage={goToNextImage}
+              goToPrevImage={goToPrevImage}
               wishes={wishes}
               name={name}
               setName={setName}
@@ -219,6 +231,8 @@ function AppContent({
   showScrollTop,
   selectedImage,
   setSelectedImage,
+  goToNextImage,
+  goToPrevImage,
   wishes,
   name,
   setName,
@@ -268,6 +282,8 @@ function AppContent({
         selectedImage={selectedImage}
         setSelectedImage={setSelectedImage}
         handleShare={handleShare}
+        goToNextImage={goToNextImage}
+        goToPrevImage={goToPrevImage}
       />
 
       <AdminModal 
