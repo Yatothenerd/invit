@@ -34,6 +34,7 @@ export default function App() {
     setMessage,
     isSubmitting,
     guestName,
+    isLoadingGuest,
     isAdmin,
     setIsAdmin,
     guests,
@@ -63,6 +64,7 @@ export default function App() {
         setMessage={setMessage}
         isSubmitting={isSubmitting}
         guestName={guestName}
+        isLoadingGuest={isLoadingGuest}
         isAdmin={isAdmin}
         setIsAdmin={setIsAdmin}
         guests={guests}
@@ -93,6 +95,7 @@ type AppContentProps = {
   setMessage: (v: string) => void;
   isSubmitting: boolean;
   guestName: string;
+  isLoadingGuest: boolean;
   isAdmin: boolean;
   setIsAdmin: (v: boolean) => void;
   guests: any[];
@@ -124,6 +127,7 @@ function AppRoutes(props: AppContentProps) {
     setMessage,
     isSubmitting,
     guestName,
+    isLoadingGuest,
     isAdmin,
     setIsAdmin,
     guests,
@@ -157,6 +161,7 @@ function AppRoutes(props: AppContentProps) {
               setMessage={setMessage}
               isSubmitting={isSubmitting}
               guestName={guestName}
+              isLoadingGuest={isLoadingGuest}
               isAdmin={isAdmin}
               setIsAdmin={setIsAdmin}
               guests={guests}
@@ -199,6 +204,7 @@ function AppRoutes(props: AppContentProps) {
               setMessage={setMessage}
               isSubmitting={isSubmitting}
               guestName={guestName}
+              isLoadingGuest={isLoadingGuest}
               isAdmin={isAdmin}
               setIsAdmin={setIsAdmin}
               guests={guests}
@@ -240,6 +246,7 @@ function AppContent({
   setMessage,
   isSubmitting,
   guestName,
+  isLoadingGuest,
   isAdmin,
   setIsAdmin,
   guests,
@@ -256,6 +263,7 @@ function AppContent({
       <div className="phone-container no-scrollbar" ref={mainRef}>
         <LandingSection 
           guestName={guestName} 
+          isLoadingGuest={isLoadingGuest}
           scrollToContent={scrollToContent} 
         />
 

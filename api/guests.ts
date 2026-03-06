@@ -86,6 +86,21 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
+    // Direct single-guest lookup by code (fast path for invitation pages)
+    const singleCode = req.query?.code;
+    if (singleCode) {
+      const { data: row, error: codeError } = await supabase
+        .from('guestlist_tb')
+        .select('guestname')
+        .eq('guestcode', singleCode)
+        .single();
+
+      if (codeError || !row) {
+        return res.status(404).json({ error: 'Guest not found' });
+      }
+      return res.status(200).json({ name: row.guestname });
+    }
+
     const { data, error } = await supabase
       .from('guestlist_tb')
       .select('*')
